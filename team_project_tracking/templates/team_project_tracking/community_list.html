@@ -1,0 +1,83 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <br/><br/>
+  <div class="container comm-lst">
+    <br/>
+    <div class="row">
+      <div class="add-comm">
+        <p class="float-left">
+          <a class="btn btn-outline-dark" href="{% url 'add_community' %}">add new community</a>
+        </p>
+      </div>
+      {% if community_list %}
+        <div class="col col-comm-lst">
+          <div class="text-center table-responsive">
+            <table class="table table-hover">
+              <caption>List of communities</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Community</th>
+                  <th scope="col">Health Promoter(s)</th>
+                  <th scope="col">Year</th>
+                  <th scope="col">Population</th>
+                  <th scope="col">Township</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for comm in community_list %}
+                  <tr scope="row">
+                    <td><a href="{{ comm.get_absolute_url }}">{{ comm.community_name }}</a></td>
+                    <td>
+                      {% for key, value in comm_hp.items %}
+                        {% if key == comm.id %}
+                          <ul class="list-group">
+                            {% if 'No exisiting health promoter' in value %}
+                              <li class="list-group-item">
+                                {{'No exisiting health promoter,'}}
+                                <a class="btn-sm btn-outline-primary" href="{% url 'assign_role' %}"> add one?</a>
+                              </li>
+                            {% else %}
+                              {% for hp in value %}
+                                {% if hp.member.member_name %}
+                                  <li class="list-group-item">
+                                    <a href="{% url 'view_member' hp.member.id %}">{{ hp.member.member_name }}</a>
+                                  </li>
+                                {% elif  value == 'No exisiting health promoter' %}
+                                  <li class="list-group-item">
+                                    {{value}}
+                                  </li>
+                                {% endif %}
+                              {% endfor %}
+                            {% endif %}
+                          </ul>
+                        {% endif %}
+                      {% endfor %}
+                    </td>
+                    {% if comm.community_year %}
+                      <td>{{comm.community_year}}</td>
+                    {% else %}
+                      <td>{{ 'information missing' }}</td>
+                    {% endif %}
+                    {% if comm.population %}
+                      <td>{{comm.population}}</td>
+                    {% else %}
+                      <td>{{ 'information missing '}}</td>
+                    {% endif %}
+                    {% if comm.township %}
+                      <td>{{comm.township}}</td>
+                    {% else %}
+                      <td>{{ 'information missing' }}</td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p>There are no communities.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

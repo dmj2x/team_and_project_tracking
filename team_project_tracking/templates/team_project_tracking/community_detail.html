@@ -1,0 +1,158 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="container">
+      <div class="float-right">
+        <div class="sidebar-nav">
+          {% block sidebar %}
+            <nav class="navbar">
+              <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'getWaterProject' comm_id=community.id %}">Water</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'getSaniProject' comm_id=community.id %}">Sanitation</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'getHygieneProject' comm_id=community.id %}">Hygiene</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'view_comm_rsc' comm_id=community.id %}">Resources</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'view_community_notes' comm_id=community.id %}">Notes</a>
+                </li>
+              </ul>
+            </nav>
+          {% endblock %}
+        </div>
+      </div>
+      <h1>{{ community.community_name }}</h1>
+      <!-- <div class=""> -->
+        <table class="table">
+            <tr>
+              <td>{{ 'Population' }}</td>
+              {% if community.population > 0%}
+                <td>{{ community.population }}</td>
+              {% else %}
+                <td>{{ 'information missing' }}</td>
+              {% endif %}
+            </tr>
+            <tr>
+              <td>{{ 'Township' }}</td>
+              {% if community.township %}
+                <td>{{ community.township }}</td>
+              {% else %}
+                <td>{{ 'information missing' }}</td>
+              {%endif%}
+            </tr>
+            <tr>
+              <td>{{ 'Year Started' }}</td>
+              {% if community.community_year %}
+                <td>{{ community.community_year }}</td>
+              {%else%}
+                <td>{{ 'information missing' }}</td>
+              {%endif%}
+            </tr>
+            <tr>
+              <td>{{ 'Health Promoters' }}</td>
+              <td>
+                {% if health_promoters|length == 0  %}
+                  <p>
+                    {{'No exisiting health promoter, '}}
+                    <a class="btn-sm btn-outline-primary" href="{% url 'assign_role' %}"> {{ 'add one?' }}</a>
+                  </p>
+                {% else %}
+                  {% for h_promoter in health_promoters  %}
+                    {% if h_promoter.member_name %}
+                      <p>
+                        <a href="{% url 'view_member' h_promoter.id %}">{{ h_promoter.member_name }}</a>
+                      </p>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>{{ 'Update Community Information' }}</td>
+              <td>
+                <p>
+                  <a class="btn btn-outline-primary" href="{% url 'edit_community' community.id %}">{{ 'Edit Community Info' }}</a>
+                </p>
+              </td>
+            </tr>
+
+        </table>
+      <br/>
+      <div id="accordion">
+        <div class="card">
+          <div class="card-header" id="headingOne">
+            <h5 class="mb-0">
+              <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Members with roles in this community
+              </button>
+            </h5>
+          </div>
+
+          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+            <div class="card-body">
+                <div class="container">
+                  <div class="text-justify">
+                    <p>{{ 'Number of Female Members: ' }} {{ num_female }}</p>
+                    <p>{{ 'Number of Male Members: ' }} {{ num_male }}</p>
+                  </div>
+                  <br>
+                  {% if members %}
+                    <table class="table table-hover">
+                      <caption>List of community members</caption>
+                      <thead class="thead-light">
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Sex</th>
+                          <th scope="col">Role</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                          {% for member in members %}
+                            <tr>
+                              {% if member.member.member_name %}
+                              <td><a href="{% url 'view_member' member.member.id %}">{{ member.member.member_name }}</a></td>
+                              {% else %}
+                              <td>{{ 'information missing' }}</td>
+                              {% endif %}
+                              {% if member.member.sex %}
+                              <td>{{ member.member.sex }}</td>
+                              {% else %}
+                              <td>{{ 'information missing' }}</td>
+                              {% endif %}
+                              {% if member.role.role %}
+                              <td>{{ member.role.role }}</td>
+                              {% else %}
+                              <td>{{ 'information missing' }}</td>
+                              {% endif %}
+                            </tr>
+                          {% endfor %}
+                      </tbody>
+                    </table>
+                  {% else %}
+                  <p>There are no members with roles in this community.</p>
+                  {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br/>
+  <div class="container delete-community">
+    <p class="btn btn-danger float-right">
+      <a class="text-light" href="{% url 'delete_community' community.id %}">
+        {{ 'delete community' }}
+      </a>
+    </p>
+  </div>
+
+{% endblock %}

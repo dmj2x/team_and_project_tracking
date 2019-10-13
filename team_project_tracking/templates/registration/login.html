@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if form.errors %}
+    <p style="color: red;">
+        {{ form.errors|pluralize }}
+    </p>
+  {% endif %}
+  <div id="loginForm" class="container">
+    <div class="font-weight-normal text-center mt-5">
+    </div>
+    <div class="justify-content-center align-items-center mt-5">
+        <form action="{% url 'login' %}" method="POST">
+            {% csrf_token %}
+            {{ form }}
+            {# Assumes you setup the password_reset view in your URLconf #}
+            <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+            <input type="submit" class="btn btn-lg btn-primary mt-4" value="login"/>
+        </form>
+    </div>
+  </div>
+{% endblock %}

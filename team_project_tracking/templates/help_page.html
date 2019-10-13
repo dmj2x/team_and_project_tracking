@@ -1,0 +1,203 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <div class="body-hp">
+    <div class="container-hp" role="main">
+      <div class="faq">
+        <label for="search" class="search-label">Find Help</label>
+        <input type="search" value="" placeholder="Type some keywords (e.g. password, communities, member)">
+        <ul>
+          <li id="faq-1">
+            <h2><a href="#faq-1">Registration and login</a></h2>
+            <div>
+              <p>
+                Only invited users can register and login to this system.
+                When you receive an invitation email and click the registration link, you will be redirected to a registration page where you will enter your information.
+              </p>
+              <p>
+                On the registration form, <span class="text-info font-italic">sex, address, date of birth</span> and
+                <span class="text-info font-italic">bio</span> are optional fields.
+              </p>
+              <span class="font-weight-bold text-danger">Please note:</span>
+              <p>
+                The registration link in the email is a <span class="text-muted em-text">one time link</span>
+                and as a result, the invitee <span class="font-weight-bold text-uppercase">must</span> fill out the form completely and submit it once the link is clicked.
+              </p>
+              <p>
+                If the link is clicked more than once, it will redirect to a blank page. At this point, a new invitation will be requred.
+              </p>
+            </div>
+          </li>
+          <li id="faq-2" class="">
+            <h2><a href="#faq-2">Lost/Forgotten Password</a></h2>
+            <div>
+              <p>
+                For <span class="text-muted em-text">lost or forgotten passwords</span>,
+                click on the <span class="text-info">Lost Password?</span> link on the login page.
+                This will prompt you to enter the email you registered with, and you will shortly receive an email with a link to reset your password.
+              </p>
+              <p>
+                You must use the email you registered with, otherwise you will not receive a password reset link.
+              </p>
+            </div>
+          </li>
+          <li id="faq-3">
+            <h2><a href="#faq-3">User profile and password management</a></h2>
+            <div>
+              <p>
+                You can view your <span class="text-info">userprofile</span> by clicking on your firstname in the top right corner next to the logout button.
+              </p>
+              <p>
+                On clicking your firstname, you will be redirected to your profile where you can
+                <span class="text-muted em-text">update your personal information</span> and
+                <span class="text-muted em-text">change your password</span>,
+                <span class="font-weight-bold text-danger">except</span> your email.
+              </p>
+              <p>
+                If you must update your email address, please contact
+                <span class="text-muted em-text">Darrell, Deborah</span> or <span class="text-muted em-text">Chana</span>.
+                While in your profile, you will be able to change your password, however you will be prompted to enter your current password first.
+              </p>
+            </div>
+          </li>
+          <li id="faq-4">
+            <h2><a href="#faq-4">Inviting new users</a></h2>
+            <div>
+              <p>
+                If you have the right privileges, you will be able to invite new users to register. You can do this by selecting
+                <span class="text-info">Invite new user</span> under the <span class="text-info">New Users</span> dropdown in the menu bar.
+              </p>
+              <p>
+                You can see a list of invited users under the same dropdown, <span class="text-info">New Users</span>,
+                by selecting the <span class="text-info">Invitations</span> tab.
+              </p>
+            </div>
+          </li>
+          <li id="faq-5">
+            <h2><a href="#faq-5">Communities</a></h2>
+            <div>
+              <p>
+                You can view the list of existing communities by either clicking the
+                <em class="text-info">MedWater logo</em> or the <em class="text-info">Home</em> tab on the navbar.
+              </p>
+              <p>
+                In order to add a new community, click the <em class="text-info em-text">add new community</em> button on the home page, and submitting the form.
+                You can get to the home page by clicking the <em class="text-info">Home</em> tab in the menu.
+                <br>
+                <span>While on the home page, you can click on any community in the list of existing communities to view its details.</span>
+              </p>
+              <p>
+
+              </p>
+            </div>
+          </li>
+        </ul>
+        <div class="faq__notfound">
+          <p>No matches were found.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!--
+
+	JQUERY DEPENDENCY
+  code by  Osvaldas Valutis, https://osvaldas.info/real-time-search-in-javascript
+-->
+
+<!-- <script type="text/javascript" async="" src="https://ssl.google-analytics.com/ga.js"></script> -->
+<!-- <script src="../jquery-v1.min.js"></script> -->
+<script>
+
+	'use strict';
+
+
+	// search & highlight
+
+	;( function( $, window, document, undefined )
+	{
+		var $container = $( '.faq' );
+		if( !$container.length ) return true;
+
+		var $input			= $container.find( 'input' ),
+			$notfound		= $container.find( '.faq__notfound' ),
+			$items			= $container.find( '> ul > li' ),
+			$item			= $(),
+			itemsIndexed	= [];
+
+		$items.each( function()
+		{
+			itemsIndexed.push( $( this ).text().replace( /\s{2,}/g, ' ' ).toLowerCase() );
+		});
+
+		$input.on( 'keyup', function( e )
+		{
+			if( e.keyCode == 13 ) // enter
+			{
+				$input.trigger( 'blur' );
+				return true;
+			}
+
+			$items.each( function()
+			{
+				$item = $( this );
+				$item.html( $item.html().replace( /<span class="highlight">([^<]+)<\/span>/gi, '$1' ) );
+			});
+
+			var searchVal = $.trim( $input.val() ).toLowerCase();
+			if( searchVal.length )
+			{
+				for( var i in itemsIndexed )
+				{
+					$item = $items.eq( i );
+					if( itemsIndexed[ i ].indexOf( searchVal ) != -1 )
+						$item.removeClass( 'is-hidden' ).html( $item.html().replace( new RegExp( searchVal+'(?!([^<]+)?>)', 'gi' ), '<span class="highlight">$&</span>' ) );
+					else
+						$item.addClass( 'is-hidden' );
+				}
+			}
+			else $items.removeClass( 'is-hidden' );
+
+			$notfound.toggleClass( 'is-visible', $items.not( '.is-hidden' ).length == 0 );
+		});
+	})( jQuery, window, document );
+
+
+	// toggling items on title press
+
+	;( function( $, window, document, undefined )
+	{
+		$( document ).on( 'click', '.faq h2 a', function( e )
+		{
+			e.preventDefault();
+			$( this ).parents( 'li' ).toggleClass( 'is-active' );
+		});
+	})( jQuery, window, document );
+
+
+	// auto-show item content when show results reduces to single
+
+	;( function( $, window, document, undefined )
+	{
+		var $container = $( '.faq' );
+		if( !$container.length ) return true;
+
+		var $input		= $container.find( 'input' ),
+			$items		= $container.find( '> ul > li' ),
+			$item		= $();
+
+		$input.on( 'keyup', function()
+		{
+			$item = $items.not( '.is-hidden' );
+			if( $item.length == 1 )
+				$item.addClass( 'js--autoshown is-active' );
+			else
+				$items.filter( '.js--autoshown' ).removeClass( 'js--autoshown is-active' );
+		});
+	})( jQuery, window, document );
+
+</script>
+
+
+{% endblock %}

@@ -39,6 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'whitenoise.runserver_nostatic',
+    'bootstrap_datepicker_plus',
+    'bootstrap4',
+    'corsheaders',
+    'unfriendly',
+    'team_project_tracking',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +75,8 @@ TEMPLATES = [
         },
     },
 ]
+
+SITE_ID = 2
 
 WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 
@@ -124,6 +133,17 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'team_project_tracking/static/custom'),
+)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)

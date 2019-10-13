@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <div class="container">
+    <h6>Update Info</h6>
+    <br/>
+    <form method="post">
+      {% csrf_token %}
+      {{ user_form.as_p }}
+      {{ profile_form.as_p }}
+      <input class="btn btn-primary" type="submit" value="save changes">
+      <br/><br/>
+    </form>
+  </div>
+
+{% endblock %}

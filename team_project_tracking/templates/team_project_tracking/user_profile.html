@@ -1,0 +1,33 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <div class="container">
+    <div class="card" style="width: 18rem;">
+      <br/>
+      <h6 class="text-center">{{user_info.get_full_name}}</h6>
+      <div class="card-body">
+        <p class="card-text">Email: {{ user_info.email }}</p>
+        {% if user_info.profile.sex == 'M' %}
+          <p class="card-text">Sex: {{ 'Male' }}</p>
+        {% elif user_info.profile.sex == 'F' %}
+          <p class="card-text">Sex: {{ 'Female' }}</p>
+        {% endif %}
+        <p class="card-text">Address: {{ user_info.profile.address }}</p>
+        <p class="card-text">Bio: {{ user_info.profile.bio }}</p>
+        <p>
+          <a class="btn-sm btn-primary" href="{% url 'update_profile' %}">
+            update info
+          </a>
+        </p>
+        {% if not user.is_superuser %}
+          <p>
+            <a class="btn-sm" href="{% url 'change_password' %}">
+              change password
+            </a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

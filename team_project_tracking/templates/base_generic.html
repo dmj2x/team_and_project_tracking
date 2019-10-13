@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block title %}<title>Team and Project Tracking System</title>{% endblock %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Add additional CSS in static file -->
+  {% load bootstrap4 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript jquery='full' %}
+  {{ form.media }}              {# Adds date-picker required JS and CSS #}
+  {% load unfriendly_tags %}
+  {% load auth_extras %}      {# custom template tag to check user groups #}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'css/help-page.css' %}">
+  <script type="text/javascript" src='{% static "js/baseJs.js"%}'></script>
+  <script type="text/javascript" src='{% static "js/permissions.js" %}'></script>
+
+</head>
+<body>
+  <div class="container-fluid">
+    <nav class="navbar navbar-expand-xl navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'communities' %}">
+      <img class="logo img-thumbnail" src="{% static 'logo/logo-600x268.png' %}" width="70"
+                   height="70" style="padding-bottom: 1px;" alt="Logo"/></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="navbar-brand" href="#">Home<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="navbar-brand dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Team
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Create New Member</a>
+            <a class="dropdown-item" href="#">Join a team</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="navbar-brand" href="{% url 'help_page' %}">Help Page</a>
+        </li>
+      </ul>
+      
+      {% if user.is_authenticated %}
+        <p>
+          <a class="btn btn-sm btn-outline-light" href="{% url 'logout' %}">
+           Logout
+          </a>
+        </p>
+     {% else %}
+      <p>
+        <a class="btn btn-sm btn-outline-light" href="{% url 'login' %}?next={{request.path}}">Login</a>
+      </p>
+     {% endif %}
+
+    </div>
+  </nav>
+  <br/>
+  {% include 'messages.html' %}
+  {% block content %}{% endblock %}
+  </div>
+</body>
+<footer class="footer footer-top">
+	<div id="footer">&copy; team-project-tracking{% now 'Y' %}</div>
+</footer>
+</html>
