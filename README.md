@@ -45,7 +45,7 @@ To run this project in your local environment;
       - .env
 
 5. Start project. Run the following command to start the project.
-python3 manage.py runserver
+    > python3 manage.py runserver
 
-This should take you the Welcome page. Check image below
-
+This should take you the Welcome page. Check image below:
+![Welcome Page](team_project_tracking/static/logo/welcome.png))
