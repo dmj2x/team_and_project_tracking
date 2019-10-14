@@ -47,5 +47,6 @@ To run this project in your local environment;
 5. Start project. Run the following command to start the project.
     > python3 manage.py runserver
 
-This should take you the Welcome page. Check image below:
-![Welcome Page](team_project_tracking/static/logo/welcome.png))
+Once the command executes, you should be able to see the page in the screenshot below at this url http://127.0.0.1:8000/:
+
+![Welcome Page](team_project_tracking/static/logo/welcome.png)
