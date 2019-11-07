@@ -1,0 +1,15 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <br/><br/>
+  <div class="container">
+    <h4>Remove Role from User</h4>
+    <br/>
+    <form action="{% url 'unassign_role' %}" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <br/>
+      <input class="btn btn-primary" type="submit" value="Submit">
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <br/><br/>
+  <div class="container">
+    <br/>
+    <br/>
+    <div class="text-center">
+      {% if courses %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Course Name</th>
+                <th scope="col">Course Number</th>
+                <th scope="col">Semester</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for course in courses %}
+                <tr scope="row">
+                    <td>
+                        <a href="{{ course.get_absolute_url }}">{{ course.course_name }}</a>
+                    </td>
+                    <td>{{ course.course_number }}</td>
+                    <td>{{ course.semester }} {{ course.year }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>There are no exisiting courses</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

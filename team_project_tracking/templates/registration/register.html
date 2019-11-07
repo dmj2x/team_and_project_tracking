@@ -7,7 +7,6 @@
         <form action="{% url 'register' %}" method="POST">
           {% csrf_token %}
           {{ user_form }}
-          {{ profile_form }}
           <input type="submit" class="btn btn-primary mt-4" value="Register"/>
           <br><br><br><br>
         </form>

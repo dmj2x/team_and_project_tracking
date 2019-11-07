@@ -5,15 +5,13 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.core.validators import MaxValueValidator, MinValueValidator
 from bootstrap_datepicker_plus import DatePickerInput
 from django.core.exceptions import PermissionDenied
-from team_project_tracking.models import Profile, Course, SEX_CHOICES, SEMESTER_CHOICES
+from team_project_tracking.models import *
 from datetime import date
 import logging
 
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-
-
 
 
 class UserLoginForm(forms.Form):
@@ -165,20 +163,51 @@ class UpdateUserForm(forms.ModelForm):
     #     last_name = self.cleaned_data.get('last_name')
 
 
-class ProfileForm(forms.ModelForm):
+class RoleForm(forms.ModelForm):
     class Meta:
-        model = Profile
-        fields = ['bio']
+        model = Role
+        fields = ['role_title']
+    role_title = forms.CharField(
+    label='Role Title',
+    max_length=100,
+    widget=forms.TextInput(
+    attrs={
+        'class': 'form-control col-6 col-md-4',
+        'autofocus': '',
+        'placeholder': 'enter role title',
+    }
+    ), )
+    description = forms.CharField(
+    label='Role Description',
+    required=False,
+    widget=forms.Textarea(
+    attrs={
+        'class': 'form-control col-6 col-md-4',
+        'autofocus': '',
+        'placeholder': 'enter role description',
+    }
+    ))
 
-    bio = forms.CharField(
-        label='Bio',
-        required=False,
-        widget=forms.Textarea(
-            attrs={
-                'class': 'form-control col-6 col-md-4',
-                'autofocus': '',
-            }
-        ))
+    def clean(self):
+        cleaned_data = super().clean()
+        role_title = cleaned_data.get('role_title')
+        description = cleaned_data.get('description')
+
+
+class UserRoleForm(forms.ModelForm):
+    class Meta:
+        model = UserRole
+        fields = ['role', 'user', 'course']
+        labels = {
+            'course': 'Course',
+            'user': 'User',
+            'role': 'Role',
+        }
+        widgets = {
+            'course': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+            'user': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+            'role': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+        }
 
 
 class UpdateUserInfoForm(forms.ModelForm):
@@ -212,74 +241,72 @@ class UpdateUserInfoForm(forms.ModelForm):
     #     last_name = self.cleaned_data.get('last_name')
 
 
-# def current_year():
-#     return date.today().year
-# def year_choices():
-#     return [(r,r) for r in range(2010, date.today().year+5)]
+def current_year():
+    return date.today().year
+def year_choices():
+    return [(r,r) for r in range(2010, date.today().year+2)]
 
 
-# class CourseForm(forms.ModelForm):
-#     class Meta:
-#         model = Course
-#         fields = ['course_name', 'course_number', 'course_description', 'semester', 'year']
-#     course_name = forms.CharField(
-#         label='Course Name',
-#         max_length=100,
-#         widget=forms.TextInput(
-#             attrs={
-#                 'class': 'form-control col-6 col-md-4',
-#                 'autofocus': '',
-#                 'placeholder': 'enter course name',
-#             }
-#         ), )
-#     course_number = forms.CharField(
-#         label='Course Number',
-#         required=False,
-#         widget=forms.CharField(
-#             attrs={
-#                 'class':'form-control col-6 col-md-4',
-#                 'autofocus': '',
-#                 'placeholder': 'enter course number',
-#             }
-#         ),)
-#     course_description = forms.CharField(
-#         label='Course Description',
-#         required=False,
-#         widget=forms.TextInput(
-#             attrs={
-#                 'class': 'form-control col-6 col-md-4',
-#                 'autofocus': '',
-#                 'placeholder': 'enter course description',
-#             }
-#         ),)
-#     semester = forms.ChoiceField(
-#         label='Semester',
-#         coerce=str,
-#         required=True,
-#         choices=SEMESTER_CHOICES,
-#         widget=forms.Select(
-#             attrs={
-#                 'class':'form-control col-6 col-md-4',
-#                 'autofocus': '',
-#             }
-#         ),)
-#     year = forms.TypedChoiceField(
-#         label='Year',
-#         coerce=str,
-#         required=False,
-#         choices=year_choices,
-#         initial=current_year,
-#         widget=forms.Select(
-#             attrs={
-#                 'class':'form-control col-6 col-md-4',
-#                 'autofocus': '',
-#             }
-#         ),)
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ['course_name', 'course_number', 'semester', 'year', 'course_description']
+    course_name = forms.CharField(
+        label='Course Name',
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter course name',
+            }
+    ), )
+    course_number = forms.CharField(
+        label='Course Number',
+        max_length=12,
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter course number'
+            }
+        ),)
+    semester = forms.ChoiceField(
+        label='Semester',
+        choices=SEMESTER_CHOICES,
+        widget=forms.Select(
+            attrs={
+                'class':'form-control col-6 col-md-4',
+                'autofocus': '',
+            }
+        ),)
+    year = forms.TypedChoiceField(
+        label='Year',
+        coerce=str,
+        required=True,
+        choices=year_choices,
+        initial=current_year,
+        widget=forms.Select(
+            attrs={
+                'class':'form-control col-6 col-md-4',
+                'autofocus': '',
+            }
+        ),)
+    course_description = forms.CharField(
+        label='Course Description',
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter course description',
+            }
+        ),)
 
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     course_name = cleaned_data.get('course_name')
-    #     course_number = cleaned_data.get('course_number')
-    #     course_description = cleaned_data.get('course_description')
-    #     semester = cleaned_data.get('semester')
-    #     year = cleaned_data.get('year')
+    def clean(self):
+        cleaned_data = super().clean()
+        course_name = cleaned_data.get('course_name')
+        course_number = cleaned_data.get('course_number')
+        course_description = cleaned_data.get('course_description')
+        semester = cleaned_data.get('semester')
+        year = cleaned_data.get('year')
