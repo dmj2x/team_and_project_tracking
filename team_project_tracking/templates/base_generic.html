@@ -31,20 +31,11 @@
           <a class="navbar-brand" href="{% url 'home' %}">Home<span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item dropdown">
-          <a class="navbar-brand dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Team
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Create New Member</a>
-            <a class="dropdown-item" href="#">Join a team</a>
-          </div>
-        </li>
-        <li class="nav-item dropdown">
             <a class="navbar-brand dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               User Roles
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="#">List of Roles</a>
+                <a class="dropdown-item" href="{% url 'roles_list' %}">List of Roles</a>
               <a class="dropdown-item" href="{% url 'add_user_role' %}">Add New Role</a>
               <a class="dropdown-item" href="{% url 'assign_role' %}">Assign Role</a>
               <a class="dropdown-item" href="{% url 'unassign_role' %}">Unassign Role</a>
@@ -66,8 +57,8 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="#">List of Teams</a>
-                <a class="dropdown-item" href="{% url 'add_user_role' %}">Create New Team</a>
-                <a class="dropdown-item" href="{% url 'assign_role' %}">Join a Team</a>>
+                <a class="dropdown-item" href="{% url 'create_new_team' %}">Create New Team</a>
+                <a class="dropdown-item" href="{% url 'assign_role' %}">Join a Team</a>
               </div>
             </li>
       </ul>

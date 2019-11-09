@@ -310,3 +310,28 @@ class CourseForm(forms.ModelForm):
         course_description = cleaned_data.get('course_description')
         semester = cleaned_data.get('semester')
         year = cleaned_data.get('year')
+
+
+class TeamForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = ['team_name', 'course']
+        labels = {'course': 'Select your course',}
+        widgets = {
+            'course': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+        }
+    team_name = forms.CharField(
+        label='Team Name',
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter team name',
+            }
+    ), )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        team_name = cleaned_data.get('team_name')
+        course = cleaned_data.get('course')

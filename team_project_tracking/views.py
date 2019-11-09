@@ -165,6 +165,19 @@ def register(request):
 		return redirect('landing_page')
 
 
+@login_required
+# TODO: check permissions and roles
+def roles_list(request):
+	try:
+		roles = Role.objects.all()
+		return render(request, 'team_project_tracking/roles_list.html', {'roles':roles})
+	except Exception as e:
+		logger.debug(e)
+		messages.error(request, 'an error occurred trying to view roles list!')
+		return redirect('home')
+
+
+@login_required
 def add_user_role(request):
 	if request.method == 'POST':
 		form = RoleForm(request.POST)
@@ -244,22 +257,25 @@ def unassign_role(request):
 				role=role,
 				course=course,
 				user=user).first()
-			if(remove_user_role.delete()):
+			if(remove_user_role):
+				remove_user_role.delete()
 				messages.success(request, 'user role removed successfully!')
+				return redirect('home')
+			else:
+				check_course = Course.objects.get(pk=course)
+				check_user = User.objects.get(pk=user)
+				check_role = Role.objects.get(pk=role)
+				messages.warning(request, "There is no user called %s with role %s in  %s course!" % (
+					check_user.first_name, check_role.role_title, check_course.course_name))
 				return redirect('home')
 		except Exception as e:
 			logging.debug(e)
 			# TODO: re-route to appropriate page
-			check_course = Course.objects.get(pk=course)
-			check_user = User.objects.get(pk=user)
-			check_role = Role.objects.get(pk=role)
-			messages.warning(request, "%s has no user, %s with role as %s!" % (
-				check_course.course_name, check_user.first_name, check_role.role))
+			messages.error(request, "an error occurred trying to unassign a role")
 			return redirect('home')
 	else:
 		form = UserRoleForm()
 	return render(request, 'team_project_tracking/unassign_role_form.html', {'form': form})
-
 
 
 @login_required
@@ -363,6 +379,57 @@ def edit_course_info(request, pk):
 		messages.error(request, 'an error occurred trying to edit course information!')
 		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
+
+
+@login_required
+# TODO: must be a student or faculty of a given class
+def create_new_team(request):
+	# should require system admin and faculty roles
+	# user should be faculty or student
+	if request.user.is_superuser:
+		try:
+			if request.method == 'POST':
+				form = TeamForm(request.POST)
+				if form.is_valid():
+					team_name = form.cleaned_data.get('team_name')
+					course = form.cleaned_data.get('course')
+					team_creator = request.user
+					
+					if_team = Team.objects.filter(team_name=team_name.title(), course=course, team_creator=team_creator).count()
+					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
+					if if_team < 1:
+						new_team = Team()
+						new_team.team_name=team_name.title()
+						new_team.course=course
+						new_team.team_creator=team_creator
+						try:
+							role = Role.objects.get(role_title="Faculty")
+							check_user_role = UserRole.objects.get(role=role, user=request.user)
+							new_team.team_status='active'
+						except Exception as e:
+							logger.error(e)
+							new_team.team_status='pending'
+						new_team.save()
+						messages.success(request, 'Team successfully created!')
+					else:
+						messages.info(request, 'a team with name %s already exists!' % team_name)
+					# TODO: should redirect appropriately
+					return redirect('home')
+				else:
+					return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
+			else:
+				form = TeamForm()
+				return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
+		# except Exception as e:
+		except PermissionDenied:
+			messages.error(request, 'an error occurred, please contact site administrator!')
+			# TODO: this will redirect to a custom 404 page
+			return redirect('home')
+	else:
+		messages.warning(request, 'you don\'t have the required permission to add a new course')
+		return redirect('home')
+
+
 
 # @login_required
 # def all_admin_users(request):

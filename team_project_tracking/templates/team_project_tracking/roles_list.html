@@ -1,0 +1,33 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <br/><br/>
+  <div class="container">
+    <br/>
+    <br/>
+    <div class="text-center">
+      {% if roles %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Role</th>
+                <th scope="col">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for role in roles %}
+                <tr scope="row">
+                    <td>{{ role.role_title }}</td>
+                    <td>{{ role.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>There are no exisiting roles</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

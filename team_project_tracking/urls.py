@@ -27,6 +27,7 @@ urlpatterns = [
     re_path('^edit_user_role/(?P<pk>\d+)/$', views.edit_user_role, name='edit_user_role'),
     path('assign_role/', views.assign_role, name='assign_role'),
     path('unassign_role/', views.unassign_role, name='unassign_role'),
+    path('roles_list/', views.roles_list, name='roles_list'),
 
     #  courses
     path('add_course/', views.add_course, name='add_course'),
@@ -34,5 +35,8 @@ urlpatterns = [
     path('course_details/<int:pk>', views.course_details, name='course_details'),
     re_path('^edit_course_info/(?P<pk>\d+)/$', views.edit_course_info, name='edit_course_info'),
     # re_path('^delete_community/(?P<pk>\d+)/$', views.delete_community, name='delete_community'),
+
+     #  teams
+    path('create_new_team/', views.create_new_team, name='create_new_team'),
 
 ]
