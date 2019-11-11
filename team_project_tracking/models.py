@@ -35,6 +35,10 @@ PROJECT_STATUS_CHOICES=(
     ('in-progress', 'in-progress'),
     ('complete', 'complete'),
 )
+COURSE_STATUS_CHOICES=(
+    ('active', 'active'),
+    ('discontinued', 'discontinued'),
+)
 
 
 class Profile(models.Model):
@@ -52,7 +56,7 @@ class Course(models.Model):
     course_description = models.TextField(null=True, blank=True)
     semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES, null=False, blank=False, default='--')
     year = PartialDateField(null=False, blank=False)
-    # status = models.models.CharField(max_length=6, choices=STATUS_CHOICES, null=False, blank=False, default='active')
+    course_status = models.CharField(max_length=10, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
 
     class Meta:
         db_table = 'course'
