@@ -1,0 +1,3 @@
+
+
+coverage run --source='.' manage.py test team_project_tracking
