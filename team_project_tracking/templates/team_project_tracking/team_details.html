@@ -1,0 +1,155 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="container">
+      <div class="float-right">
+        <div class="sidebar-nav">
+          {% block sidebar %}
+            <nav class="navbar">
+              <ul class="navbar-nav">
+               
+                <br />
+              </ul>
+            </nav>
+          {% endblock %}
+        </div>
+      </div>
+      <h1>{{ team.team_name }}</h1>
+    <br>
+    <div class="container">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#1" data-toggle="tab">{{ 'Summary Information' }}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#2" data-toggle="tab">{{ 'Members' }}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#3" data-toggle="tab">{{ 'Projects' }}</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content ">
+            <div class="tab-pane active" id="1">
+                <br />
+                <table class="table table-striped">
+                    <tr>
+                        <td>{{ 'Course' }}</td>
+                        {% if team.course is none %}
+                            <td>{{ 'information missing' }}</td>
+                        {% else %}
+                            <td>{{ team.course.course_name }}</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <td>{{ 'Number of Members' }}</td>
+                        {% if community.population %}
+                            <td>{{ community.population }}</td>
+                        {% else %}
+                            <td>{{ 'information missing' }}</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <td>{{ 'Number of Projects' }}</td>
+                        {% if community.driving_dist %}
+                            <td>{{ community.driving_dist }}</td>
+                        {% else %}
+                            <td>{{ 'information missing' }}</td>
+                        {%endif%}
+                    </tr>
+                </table>
+                <!-- class="btn btn-outline-dark ">{{ 'Edit Team Info' }} -->
+                <div class="container">
+                    <p class="btn btn-info float-left">
+                        <a class="text-light edit-btn" href="#">
+                        {{ 'Edit Team Info' }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!--When members tab is clicked-->
+            <div class="tab-pane" id="2">
+                <table class="table table-hover" id="member-tab">
+                    <thead>
+                        <tr>
+                            <th>{{ 'Name' }}</th>
+                            <th>{{ 'Role' }}</th>
+                        </tr>
+                    </thead>
+                    {% if team_members %}
+                        <caption>List of team members</caption>
+                        <tr>
+                            <td>{{ team.course.course_name }}</td>
+                            <td>{{ 'role in team' }}</td>
+                        </tr>
+                    {% endif %}
+                </table>
+                
+                {% if not projects %}
+                    <div class="text-center">
+                        <br>
+                        <b>{{ 'No team members' }}</b>
+                    </div>
+                {% endif %}
+
+                {% with team_id=team.id %}
+                    <div class="text-center">
+                        <br />
+                        <a class="btn btn-info btn-outline-dark" href="#">Add New Member</a>
+                        <a class="btn btn-outline-info" href="#">Remove Member</a>
+                    </div>
+                {% endwith %}
+
+            </div>
+
+            <!--When projects tab is clicked-->
+            <div class="tab-pane" id="3">
+                <table class="table table-hover" id="projects-tab">
+                    <thead>
+                        <tr>
+                            <th>{{ 'Name' }}</th>
+                            <th>{{ 'Short Description' }}</th>
+                            <th>{{ 'Deadline' }}</th>
+                        </tr>
+                    </thead>
+                    {% if projects %}
+                        <caption>{{ 'List of team projects' }}</caption>
+                        <tr>
+                            <td class="btn btn-light">{{ project.name }}</td>
+                            <td>{{ project.desscription }}</td>
+                            <td>{{ project.deadline }}</td>
+                        </tr>
+                    {% endif %}
+                </table>
+
+                {% if not projects %}
+                    <div class="text-center">
+                        <br>
+                        <b>{{ 'No existing team Projects' }}</b>
+                    </div>
+                {% endif %}
+
+                {% with team_id=team.id %}
+                    <div class="text-center">
+                        <br>
+                        <a class="btn btn-outline-dark" href="#">Add New Project</a>
+                    </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+      <br/>
+    </div>
+  </div>
+  <br/>
+  <div class="container delete-community">
+    <p class="btn btn-danger float-right">
+      <a class="text-light" href="#">
+        {{ 'Leave team' }}
+      </a>
+    </p>
+  </div>
+
+{% endblock %}

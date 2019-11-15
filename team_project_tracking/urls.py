@@ -38,5 +38,7 @@ urlpatterns = [
 
      #  teams
     path('create_new_team/', views.create_new_team, name='create_new_team'),
+    path('teams_list/', views.teams_list, name='teams_list'),
+    path('team_details/<int:pk>', views.team_details, name='team_details'),
 
 ]

@@ -27,7 +27,7 @@ SEMESTER_CHOICES=(
     ('summer', 'summer'),
 )
 TEAM_STATUS_CHOICES=(
-    ('pending', 'pending'),
+    ('pending-approval', 'pending-approval'),
     ('active', 'active'),
     ('inactive', 'inactive'),
 )

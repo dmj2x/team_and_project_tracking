@@ -1,0 +1,39 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <br/><br/>
+  <div class="container">
+    <br/>
+    <br/>
+    <div class="text-center">
+      {% if teams %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Team Name</th>
+                <th scope="col">Course</th>
+                <th scope="col">Created By</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for team in teams %}
+                <tr scope="row">
+                    <td>
+                        <a href="{{ team.get_absolute_url }}">{{ team.team_name }}</a>
+                    </td>
+                    <td>{{ team.course }}</td>
+                    <td>{{ team.team_creator }}</td>
+                    <td>{{ team.team_status }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>There are no exisiting teams</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

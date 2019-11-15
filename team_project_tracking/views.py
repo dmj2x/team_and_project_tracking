@@ -358,7 +358,7 @@ def edit_course_info(request, pk):
 			course = Course.objects.get(pk=pk)
 			form = CourseForm(request.POST, instance=course)
 			if request.method == 'POST' and form.is_valid():
-				print("here now", course.course_name)
+				print("here now: %s" % course.course_name)
 				course_update = form.save(commit=False)
 
 				course_update.course_name = form.cleaned_data['course_name']
@@ -378,6 +378,18 @@ def edit_course_info(request, pk):
 		logger.debug(e)
 		messages.error(request, 'an error occurred trying to edit course information!')
 		# TODO: this will redirect to a custom 404 page
+		return redirect('home')
+
+
+@login_required
+# TODO: check permissions and roles
+def teams_list(request):
+	try:
+		teams = Team.objects.all()
+		return render(request, 'team_project_tracking/teams_list.html', {'teams':teams})
+	except Exception as e:
+		logger.debug(e)
+		messages.error(request, 'an error occurred trying to view course list!')
 		return redirect('home')
 
 
@@ -430,6 +442,16 @@ def create_new_team(request):
 		return redirect('home')
 
 
+@login_required
+def team_details(request, pk):
+	try:
+		if (pk):
+			team = Team.objects.get(pk=pk)
+	except Team.DoesNotExist:
+		messages.error(request, 'an error occurred trying to view team details!')
+		# TODO: this will redirect to a custom 404 page
+		return redirect('home')
+	return render(request, 'team_project_tracking/team_details.html', {'team' : team})
 
 # @login_required
 # def all_admin_users(request):
