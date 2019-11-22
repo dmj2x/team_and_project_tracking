@@ -315,13 +315,12 @@ def add_course(request):
 						messages.success(request, 'Course successfully added!')
 					else:
 						messages.info(request, 'a course with name %s already exists!' % course_name)
-					# TODO: should redirect to course list
-					return redirect('home')
+					return redirect('course_list')
 				else:
-					return render(request, 'team_project_tracking/add_course_form.html', {'form': form})
+					return render(request, 'team_project_tracking/add_course_form.html', {'form': course_form})
 			else:
 				course_form = CourseForm()
-				return render(request, 'team_project_tracking/add_course_form.html', {'form': form})
+				return render(request, 'team_project_tracking/add_course_form.html', {'form': course_form})
 		# except Exception as e:
 		except PermissionDenied:
 			messages.error(request, 'an error occurred, please contact site administrator!')
@@ -360,7 +359,7 @@ def add_course_offering(request, pk):
 					else:
 						messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
 					# TODO: should redirect to course list
-					return redirect('home')
+					return redirect('course_details', pk)
 				else:
 					return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
 			else:
@@ -380,10 +379,16 @@ def add_course_offering(request, pk):
 def course_details(request, pk):
 	try:
 		if (pk):
+			print('course id: %s' % pk)
 			course = Course.objects.get(pk=pk)
-			current_offering = CourseOffering.objects.filter(course=course).last()
-			course_offering = CourseOffering.objects.filter(course=course).order_by('year').exclude(id=current_offering.id)
-			course_teams = Team.objects.filter(course_offering=current_offering)
+			course_offering, current_offering, course_teams = [], [], []
+			try:
+				current_offering = CourseOffering.objects.filter(course=course).last()
+				course_offering = CourseOffering.objects.filter(course=course).order_by('year').exclude(id=current_offering.id)
+				course_teams = Team.objects.filter(course_offering=current_offering)
+			except Exception as e:
+				logger.debug(e)
+				print("Course is missing more info")
 			return render(request, 
 				'team_project_tracking/course_detail.html', 
 				{
@@ -472,8 +477,7 @@ def create_new_team(request):
 						# for team in similar_teams:
 						# 	print('Here in teams with: %s' % team)
 						messages.info(request, 'a team with name %s already exists!' % team_name)
-					# TODO: should redirect appropriately
-					return redirect('home')
+					return redirect('teams_list')
 				else:
 					return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
 			else:
