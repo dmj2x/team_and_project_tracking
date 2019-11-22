@@ -353,21 +353,11 @@ class CreateTeamForm(forms.ModelForm):
                 'placeholder': 'enter team name',
             }
     ), )
-    
-    # def __init__(self, *args, **kwargs):
-    #     super(TeamForm, self).__init__(*args, **kwargs)
-    #     instance = getattr(self, 'instance', None)
-    #     if instance and instance.pk:
-    #         self.fields['team_status'].required = False
-    #         self.fields['team_status'].widget.attrs['disabled'] = 'disabled'
-    #         self.fields['course'].required = False
-    #         self.fields['course'].widget.attrs['disabled'] = 'disabled'
 
     def clean(self):
         cleaned_data = super().clean()
         team_name = cleaned_data.get('team_name')
         course = cleaned_data.get('course')
-        
 
 
 class UpdateTeamInfoForm(forms.ModelForm):

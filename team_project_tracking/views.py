@@ -283,10 +283,6 @@ def unassign_role(request):
 def course_list(request):
 	try:
 		courses = Course.objects.all()
-		# courseList = []
-		# if courses:
-		# 	for course in courses:
-		# 		courseList.append(course)
 		return render(request, 'team_project_tracking/course_list.html', {'courses':courses})
 	except Exception as e:
 		logger.debug(e)
