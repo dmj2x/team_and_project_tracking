@@ -51,5 +51,9 @@
 }
 
 .edit-btn {
-	padding-top: 1rem;
+	padding-left: 2rem;
+}
+
+.float-center {
+	transform: translateX(3rem);
 }

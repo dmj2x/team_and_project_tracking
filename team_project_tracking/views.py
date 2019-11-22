@@ -14,7 +14,7 @@ from .tokens import account_activation_token
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -297,26 +297,23 @@ def course_list(request):
 @login_required
 # should require system admin and faculty roles
 def add_course(request):
-	# if  request.user.has_perm('medwater.add_community'):
+	# if  request.user.has_perm('course.add_course'):
 	if request.user.is_superuser:
 		try:
 			if request.method == 'POST':
-				form = CourseForm(request.POST)
-				if form.is_valid():
-					course_name = form.cleaned_data.get('course_name')
-					course_number = form.cleaned_data.get('course_number')
-					course_description = form.cleaned_data.get('course_description')
-					semester = form.cleaned_data.get('semester')
-					year = form.cleaned_data.get('year')
-					num_results = Course.objects.filter(course_name=course_name.title()).count()
+				course_form = CourseForm(request.POST)
+				if course_form.is_valid():
+					course_name = course_form.cleaned_data.get('course_name')
+					course_number = course_form.cleaned_data.get('course_number')
+					course_description = course_form.cleaned_data.get('course_description')
+					
+					num_results = Course.objects.filter(course_name=course_name.title(), course_number=course_number).count()
 					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
 					if num_results < 1:
 						course = Course(
 							course_name=course_name.title(),
 							course_number=course_number,
-							course_description=course_description,
-							semester=semester,
-							year=year
+							course_description=course_description
 						)
 						course.save()
 						messages.success(request, 'Course successfully added!')
@@ -327,8 +324,52 @@ def add_course(request):
 				else:
 					return render(request, 'team_project_tracking/add_course_form.html', {'form': form})
 			else:
-				form = CourseForm()
+				course_form = CourseForm()
 				return render(request, 'team_project_tracking/add_course_form.html', {'form': form})
+		# except Exception as e:
+		except PermissionDenied:
+			messages.error(request, 'an error occurred, please contact site administrator!')
+			# TODO: this will redirect to a custom 404 page
+			return redirect('home')
+	else:
+		messages.warning(request, 'you don\'t have the required permission to add a new course')
+		return redirect('home')
+
+
+@login_required
+def add_course_offering(request, pk):
+	if request.user.is_superuser: # should require system admin and or faculty roles
+		try:
+			if request.method == 'POST':
+				course_offering_form = CourseOfferingForm(request.POST)
+				if course_offering_form.is_valid():
+					course = Course.objects.get(pk=pk)
+					faculty = course_offering_form.cleaned_data.get('faculty')
+					teaching_assistant = course_offering_form.cleaned_data.get('teaching_assistant')
+					semester = course_offering_form.cleaned_data.get('semester')
+					year = course_offering_form.cleaned_data.get('year')
+					
+					num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year, faculty=faculty).count()
+					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
+					if num_results < 1:
+						course_offer = CourseOffering(
+							course = course,
+							faculty = faculty,
+							teaching_assistant = teaching_assistant,
+							semester=semester,
+							year=year
+						)
+						course_offer.save()
+						messages.success(request, 'Course offering successfully added!')
+					else:
+						messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
+					# TODO: should redirect to course list
+					return redirect('home')
+				else:
+					return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
+			else:
+				course_offering_form = CourseOfferingForm()
+				return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form, "course_id":pk})
 		# except Exception as e:
 		except PermissionDenied:
 			messages.error(request, 'an error occurred, please contact site administrator!')
@@ -344,11 +385,22 @@ def course_details(request, pk):
 	try:
 		if (pk):
 			course = Course.objects.get(pk=pk)
+			current_offering = CourseOffering.objects.filter(course=course).last()
+			course_offering = CourseOffering.objects.filter(course=course).order_by('year').exclude(id=current_offering.id)
+			course_teams = Team.objects.filter(course_offering=current_offering)
+			return render(request, 
+				'team_project_tracking/course_detail.html', 
+				{
+					'course' : course, 
+					'course_offering' : course_offering,
+					'current_offering' : current_offering,
+					'course_teams' : course_teams
+				}
+			)
 	except Course.DoesNotExist:
 		messages.error(request, 'an error occurred trying to view course details!')
 		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
-	return render(request, 'team_project_tracking/course_detail.html', {'course' : course})
 
 
 @login_required
@@ -358,14 +410,11 @@ def edit_course_info(request, pk):
 			course = Course.objects.get(pk=pk)
 			form = CourseForm(request.POST, instance=course)
 			if request.method == 'POST' and form.is_valid():
-				print("here now: %s" % course.course_name)
+				# print("here now: %s" % course.course_name)
 				course_update = form.save(commit=False)
-
 				course_update.course_name = form.cleaned_data['course_name']
 				course_update.course_number = form.cleaned_data['course_number']
 				course_update.course_description = form.cleaned_data['course_description']
-				course_update.semester = form.cleaned_data['semester']
-				course_update.year = form.cleaned_data['year']
 
 				course_update.save()
 				messages.success(request, 'course information updated!')
@@ -401,18 +450,17 @@ def create_new_team(request):
 	if request.user.is_superuser:
 		try:
 			if request.method == 'POST':
-				form = TeamForm(request.POST)
+				form = CreateTeamForm(request.POST)
 				if form.is_valid():
 					team_name = form.cleaned_data.get('team_name')
-					course = form.cleaned_data.get('course')
+					course_offering = form.cleaned_data.get('course_offering')
 					team_creator = request.user
-					
-					if_team = Team.objects.filter(team_name=team_name.title(), course=course, team_creator=team_creator).count()
+					if_team = Team.objects.filter(team_name=team_name.title(), course_offering=course_offering, team_creator=team_creator).count()
 					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
 					if if_team < 1:
 						new_team = Team()
 						new_team.team_name=team_name.title()
-						new_team.course=course
+						new_team.course_offering=course_offering
 						new_team.team_creator=team_creator
 						try:
 							role = Role.objects.get(role_title="Faculty")
@@ -424,13 +472,16 @@ def create_new_team(request):
 						new_team.save()
 						messages.success(request, 'Team successfully created!')
 					else:
+						# similar_teams = Team.objects.filter(team_name=team_name.title(), course_offering=course_offering, team_creator=team_creator)
+						# for team in similar_teams:
+						# 	print('Here in teams with: %s' % team)
 						messages.info(request, 'a team with name %s already exists!' % team_name)
 					# TODO: should redirect appropriately
 					return redirect('home')
 				else:
 					return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
 			else:
-				form = TeamForm()
+				form = CreateTeamForm()
 				return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
 		# except Exception as e:
 		except PermissionDenied:
@@ -452,6 +503,31 @@ def team_details(request, pk):
 		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
 	return render(request, 'team_project_tracking/team_details.html', {'team' : team})
+
+
+@login_required
+def edit_team_info(request, pk):
+	try:
+		if (pk):
+			team = get_object_or_404(Team, pk=pk)
+			form = UpdateTeamInfoForm(request.POST, instance=team)
+			if request.method=='POST' and form.is_valid(): # and request.user is student
+				team_update = form.save(commit=False)
+				team_update.team_name = form.cleaned_data['team_name']
+				team_update.course_offering = form.cleaned_data['course_offering']
+				
+				team_update.save()
+				messages.success(request, 'team successfully information updated!')
+				return redirect(team_update.get_absolute_url())
+			else:
+				form = UpdateTeamInfoForm(instance=team)
+				return render(request, 'team_project_tracking/edit_team_info.html', {'form': form})
+
+	except Exception as e:
+		logger.debug(e)
+		messages.error(request, 'an error occurred trying to edit team information!')
+		# TODO: this will redirect to the appropriate page
+		return redirect('home')
 
 # @login_required
 # def all_admin_users(request):

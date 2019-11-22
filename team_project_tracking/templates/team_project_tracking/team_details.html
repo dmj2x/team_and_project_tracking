@@ -59,14 +59,6 @@
                         {%endif%}
                     </tr>
                 </table>
-                <!-- class="btn btn-outline-dark ">{{ 'Edit Team Info' }} -->
-                <div class="container">
-                    <p class="btn btn-info float-left">
-                        <a class="text-light edit-btn" href="#">
-                        {{ 'Edit Team Info' }}
-                        </a>
-                    </p>
-                </div>
             </div>
 
             <!--When members tab is clicked-->
@@ -144,7 +136,14 @@
     </div>
   </div>
   <br/>
-  <div class="container delete-community">
+  <div class="container edit-btn">
+    <p class="btn btn-info float-left">
+        <a class="text-light" href="{% url 'edit_team_info' team.id %}">
+            {{ 'Edit Team Info' }}      
+        </a>
+    </p>
+</div>
+  <div class="container">
     <p class="btn btn-danger float-right">
       <a class="text-light" href="#">
         {{ 'Leave team' }}

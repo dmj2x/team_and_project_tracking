@@ -250,7 +250,7 @@ def year_choices():
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['course_name', 'course_number', 'semester', 'year', 'course_description']
+        fields = ['course_name', 'course_number', 'course_description']
     course_name = forms.CharField(
         label='Course Name',
         max_length=100,
@@ -271,6 +271,37 @@ class CourseForm(forms.ModelForm):
                 'placeholder': 'enter course number'
             }
         ),)
+    course_description = forms.CharField(
+        label='Course Description',
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter course description',
+            }
+        ),)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        course_name = cleaned_data.get('course_name')
+        course_number = cleaned_data.get('course_number')
+        course_description = cleaned_data.get('course_description')
+
+
+class CourseOfferingForm(forms.ModelForm):
+    class Meta:
+        model = CourseOffering
+        fields = ['faculty', 'teaching_assistant', 'semester', 'year']
+        labels = {
+            'faculty': 'Faculty / Instructor(s)',
+            'teaching_assistant': 'Teaching Assistant(s)'
+        }
+        widgets = {
+            'course': forms.Select(attrs={
+                'class': 'form-control col-6 col-md-4',
+            }),
+        }
     semester = forms.ChoiceField(
         label='Semester',
         choices=SEMESTER_CHOICES,
@@ -292,33 +323,62 @@ class CourseForm(forms.ModelForm):
                 'autofocus': '',
             }
         ),)
-    course_description = forms.CharField(
-        label='Course Description',
-        required=False,
-        widget=forms.Textarea(
-            attrs={
-                'class': 'form-control col-6 col-md-4',
-                'autofocus': '',
-                'placeholder': 'enter course description',
-            }
-        ),)
 
     def clean(self):
         cleaned_data = super().clean()
-        course_name = cleaned_data.get('course_name')
-        course_number = cleaned_data.get('course_number')
-        course_description = cleaned_data.get('course_description')
+        course = cleaned_data.get('course')
+        faculty = cleaned_data.get('faculty')
+        teaching_assistant = cleaned_data.get('teaching_assistant')
         semester = cleaned_data.get('semester')
         year = cleaned_data.get('year')
 
 
-class TeamForm(forms.ModelForm):
+class CreateTeamForm(forms.ModelForm):
     class Meta:
         model = Team
-        fields = ['team_name', 'course']
-        labels = {'course': 'Select your course',}
+        fields = ['team_name', 'course_offering']
+        labels = {'course': 'Select your course'}
         widgets = {
-            'course': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+            'course_offering': forms.Select(attrs={
+                'class': 'form-control col-6 col-md-4',
+            }),
+        }
+    team_name = forms.CharField(
+        label='Team Name',
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter team name',
+            }
+    ), )
+    
+    # def __init__(self, *args, **kwargs):
+    #     super(TeamForm, self).__init__(*args, **kwargs)
+    #     instance = getattr(self, 'instance', None)
+    #     if instance and instance.pk:
+    #         self.fields['team_status'].required = False
+    #         self.fields['team_status'].widget.attrs['disabled'] = 'disabled'
+    #         self.fields['course'].required = False
+    #         self.fields['course'].widget.attrs['disabled'] = 'disabled'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        team_name = cleaned_data.get('team_name')
+        course = cleaned_data.get('course')
+        
+
+
+class UpdateTeamInfoForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = ['team_name', 'course_offering']
+        labels = {'course_offering': 'Course'}
+        widgets = {
+            'course_offering': forms.Select(attrs={
+                'class': 'form-control col-6 col-md-4',
+            }),
         }
     team_name = forms.CharField(
         label='Team Name',
@@ -334,4 +394,5 @@ class TeamForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         team_name = cleaned_data.get('team_name')
-        course = cleaned_data.get('course')
+        course_offering = cleaned_data.get('course_offering')
+        

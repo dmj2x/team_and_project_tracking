@@ -54,17 +54,36 @@ class Course(models.Model):
     course_name = models.CharField(max_length=100, blank=False, null=False)
     course_number = models.CharField(max_length=12, null=False, blank=False)
     course_description = models.TextField(null=True, blank=True)
-    semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES, null=False, blank=False, default='--')
-    year = PartialDateField(null=False, blank=False)
-    course_status = models.CharField(max_length=10, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
 
     class Meta:
         db_table = 'course'
-        unique_together = (('course_name', 'semester', 'year'),)
     def get_absolute_url(self):
         return reverse('course_details', args=[str(self.id)])
     def __str__(self):
         return self.course_name
+
+
+class CourseOffering(models.Model):
+    course = models.ForeignKey('Course', on_delete=models.CASCADE,
+                                    null=False, related_name='course', blank=False)
+    faculty = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    null=False, related_name='faculty', blank=False)
+    teaching_assistant = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    null=True, related_name='teaching_assistant', blank=True)
+    semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES, null=False, blank=False, default='--')
+    year = PartialDateField(null=False, blank=False)
+    course_status = models.CharField(max_length=10, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
+    
+    class Meta:
+        db_table = 'course_offering'
+        unique_together = (('course', 'semester', 'year', 'faculty'),)
+        indexes = [
+            models.Index(fields=['course', 'semester', 'year', 'faculty'])
+        ]
+    # def get_absolute_url(self):
+    #     return reverse('course_details', args=[str(self.id)])
+    def __str__(self):
+        return '%s, %s%s' % (self.course, self.semester, self.year)
 
 
 class Role(models.Model):
@@ -96,16 +115,19 @@ class UserRole(models.Model):
 
 class Team(models.Model):
     team_name = models.CharField(max_length=100, blank=False, null=False)
-    team_status = models.CharField(max_length=10, choices=TEAM_STATUS_CHOICES, 
+    team_status = models.CharField(max_length=18, choices=TEAM_STATUS_CHOICES, 
                                     null=False, blank=False, default='pending')
-    course = models.OneToOneField('Course', on_delete=models.CASCADE,
-                                    null=False, related_name='team_course', blank=False)
-    team_creator = models.OneToOneField(User, on_delete=models.CASCADE,
+    course_offering = models.ForeignKey('CourseOffering', on_delete=models.CASCADE,
+                                    null=False, related_name='team_course_offering', blank=False)
+    team_creator = models.ForeignKey(User, on_delete=models.CASCADE,
                                     null=False, related_name='team_creator', blank=False)
 
     class Meta:
         db_table = 'team'
-        unique_together = (('team_name', 'course', 'team_creator'),)
+        unique_together = (('team_name', 'course_offering', 'team_creator'),)
+        indexes = [
+            models.Index(fields=['team_name', 'course_offering', 'team_creator'])
+        ]
     def get_absolute_url(self):
         return reverse('team_details', args=[str(self.id)])
     def __str__(self):

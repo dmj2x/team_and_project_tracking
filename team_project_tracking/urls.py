@@ -31,6 +31,7 @@ urlpatterns = [
 
     #  courses
     path('add_course/', views.add_course, name='add_course'),
+    path('add_course_offering/<int:pk>', views.add_course_offering, name='add_course_offering'),
     path('course_list/', views.course_list, name='course_list'),
     path('course_details/<int:pk>', views.course_details, name='course_details'),
     re_path('^edit_course_info/(?P<pk>\d+)/$', views.edit_course_info, name='edit_course_info'),
@@ -40,5 +41,6 @@ urlpatterns = [
     path('create_new_team/', views.create_new_team, name='create_new_team'),
     path('teams_list/', views.teams_list, name='teams_list'),
     path('team_details/<int:pk>', views.team_details, name='team_details'),
+    re_path('^edit_team_info/(?P<pk>\d+)/$', views.edit_team_info, name='edit_team_info'),
 
 ]
