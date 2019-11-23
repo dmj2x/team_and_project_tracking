@@ -379,7 +379,7 @@ def add_course_offering(request, pk):
 def course_details(request, pk):
 	try:
 		if (pk):
-			print('course id: %s' % pk)
+			# print('course id: %s' % pk)
 			course = Course.objects.get(pk=pk)
 			course_offering, current_offering, course_teams = [], [], []
 			try:
@@ -388,7 +388,7 @@ def course_details(request, pk):
 				course_teams = Team.objects.filter(course_offering=current_offering)
 			except Exception as e:
 				logger.debug(e)
-				print("Course is missing more info")
+				# print("Course is missing more info")
 			return render(request, 
 				'team_project_tracking/course_detail.html', 
 				{

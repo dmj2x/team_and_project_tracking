@@ -104,7 +104,9 @@ venv.bak/
 .mypy_cache/
 
 #vscode
-.vscode/
+.vscode
 
 # notes
 notes.txt
+
+*.pyc

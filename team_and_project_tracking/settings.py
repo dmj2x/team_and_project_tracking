@@ -16,6 +16,8 @@ from django.conf import settings
 import dj_database_url
 from whitenoise import WhiteNoise
 from django.contrib.messages import constants as messages
+import django_heroku
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -143,7 +145,6 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'team_project_tracking/static/custom'),
 )
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 
 STATICFILES_FINDERS = (
@@ -151,3 +152,5 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+
+django_heroku.settings(locals())
