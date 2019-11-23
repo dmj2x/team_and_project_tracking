@@ -48,7 +48,7 @@ def login_view(request):
 			- authenticates user if both email and password are valid
 			- redirects to the next page or home page
 	"""
-	# next = request.GET.get('next')
+	next = request.GET.get('next')
 	form = UserLoginForm(request.POST or None)
 	if form.is_valid():
 		email = form.cleaned_data.get('email')
