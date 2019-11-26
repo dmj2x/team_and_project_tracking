@@ -1,3 +1,21 @@
 
 
 coverage run --source='.' manage.py test team_project_tracking
+
+
+Missing Feature:
+    - add new member to team
+    - remove member from team
+    - join a team
+    - leave team
+    - add team leader
+    - approve/decline team
+    - Approve student by faculty
+    - Approve faculty by system admin
+    - Add project
+
+
+Permissions and authorization checks
+    - is student
+    - is faculty and "is course instructor"
+    - is team member

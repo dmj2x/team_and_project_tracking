@@ -16,6 +16,8 @@ from django.conf import settings
 import dj_database_url
 from whitenoise import WhiteNoise
 from django.contrib.messages import constants as messages
+import django_heroku
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,23 +86,28 @@ WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-        'TEST': {
-            'NAME': config('TESTDB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            # 'ENGINE': 'django.db.backends.sqlite3',
-            # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),    
-        }
-    },
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASSWORD'),
+#         'HOST': config('DB_HOST'),
+#         'PORT': config('DB_PORT'),
+#         'TEST': {
+#             'NAME': config('TESTDB_NAME'),
+#             'USER': config('DB_USER'),
+#             'PASSWORD': config('DB_PASSWORD'),
+#             # 'ENGINE': 'django.db.backends.sqlite3',
+#             # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),    
+#         }
+#     },
+# }
+
+
+DATABASES = { 'default' : dj_database_url.config()}
+
+
 
 
 # Password validation
@@ -143,7 +150,6 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'team_project_tracking/static/custom'),
 )
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 
 STATICFILES_FINDERS = (
@@ -151,3 +157,5 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+
+django_heroku.settings(locals())
