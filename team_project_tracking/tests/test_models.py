@@ -7,14 +7,14 @@ from team_project_tracking.models import Course
 class CourseTestCase(TestCase):
     def setUp(self):
         self.client = Client
-        Course.objects.create(course_name="Software Engineering", course_number="CECS 550", semester="fall", year=PartialDate('2019'))
+        Course.objects.create(course_name="Software Engineering", course_number="CECS 550")
 
     def test_create_course(self):
         """check new course created"""
         softEng = Course.objects.get(course_name="Software Engineering")
         
-        self.assertEqual(softEng.semester, "fall")
-        self.assertEqual(softEng.year, PartialDate('2019'))
+        self.assertEqual(softEng.course_number, "CECS 550")
+        # self.assertEqual(softEng.year, PartialDate('2019'))
 
     # def test_community_str_property(self):
     #     gal = Course.objects.get(course_name="Galeras")
