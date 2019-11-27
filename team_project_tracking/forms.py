@@ -197,14 +197,14 @@ class RoleForm(forms.ModelForm):
 class UserRoleForm(forms.ModelForm):
     class Meta:
         model = UserRole
-        fields = ['role', 'user', 'course']
+        fields = ['role', 'user', 'course_offering']
         labels = {
             'course': 'Course',
             'user': 'User',
             'role': 'Role',
         }
         widgets = {
-            'course': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+            'course_offering': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
             'user': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
             'role': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
         }

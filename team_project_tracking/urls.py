@@ -15,6 +15,12 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('', views.landing_page, name='landing_page'),
     path('home/', views.home, name='home'),
+    path('first_info_page/', views.first_info_page, name='first_info_page'),
+
+    #  user info
+    path('user_profile/', views.user_profile, name='user_profile'),
+    # path('update_profile/', views.update_profile, name='update_profile'),
+    # path('change_password/', views.change_password, name='change_password'),
     # re_path(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
     #     views.activate, name='activate'),
     path('password_reset/', views.PasswordResetView.as_view(), name='password_reset'),

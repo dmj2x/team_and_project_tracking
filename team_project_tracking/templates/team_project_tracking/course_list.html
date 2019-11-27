@@ -13,8 +13,6 @@
               <tr>
                 <th scope="col">Course Name</th>
                 <th scope="col">Course Number</th>
-                <th scope="col">Semester</th>
-                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -23,8 +21,11 @@
                     <td>
                         <a href="{{ course.get_absolute_url }}">{{ course.course_name }}</a>
                     </td>
-                    <td>{{ course.course_number }}</td>
-                    <td>{{ course.semester }} {{ course.year }}</td>
+                    {% if course.course_number %}
+                      <td>{{ course.course_number }}</td>
+                    {% else %}
+                      <td>{{ 'information missing' }}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>

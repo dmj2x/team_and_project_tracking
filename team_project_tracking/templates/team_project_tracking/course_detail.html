@@ -3,7 +3,15 @@
 {% block content %}
 <div class="container-fluid">
   <div class="container">
-    <h1>{{ course.course_name }}</h1>
+    <h1>
+      {{ course.course_name }} 
+      {{ ' by Prof. ' }}
+      {% if current_offering.faculty %}
+        {{ current_offering.faculty.first_name }}
+        {{ current_offering.faculty.last_name }}
+      {% endif %}
+    
+    </h1>
         <table class="table">
             <tr>
               <td>{{ 'Course Number' }}</td>
@@ -76,6 +84,11 @@
                           {% endif %}
                           {% if team.team_status %}
                             <td>{{ team.team_status }}</td>
+                          {% else %}
+                            <td>{{ 'information missing' }}</td>
+                          {% endif %}
+                          {% if team.team_creator %}
+                            <td>{{ team.team_creator }}</td>
                           {% else %}
                             <td>{{ 'information missing' }}</td>
                           {% endif %}

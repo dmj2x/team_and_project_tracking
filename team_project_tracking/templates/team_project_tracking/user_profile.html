@@ -4,28 +4,33 @@
   <div class="container">
     <div class="card" style="width: 18rem;">
       <br/>
-      <h6 class="text-center">{{user_info.get_full_name}}</h6>
+      <h6 class="text-center">
+        {% if user_info.first_name %}
+          Hi {{ user_info.first_name }}
+        {% else %}
+          {{ 'Hi there!!' }}
+        {% endif %}
+      </h6>
       <div class="card-body">
         <p class="card-text">Email: {{ user_info.email }}</p>
-        {% if user_info.profile.sex == 'M' %}
-          <p class="card-text">Sex: {{ 'Male' }}</p>
-        {% elif user_info.profile.sex == 'F' %}
-          <p class="card-text">Sex: {{ 'Female' }}</p>
-        {% endif %}
-        <p class="card-text">Address: {{ user_info.profile.address }}</p>
-        <p class="card-text">Bio: {{ user_info.profile.bio }}</p>
+        <p class="card-text">
+          If you are a faculty member, please contact your system admin to get access to manage your course.
+          <br />
+          <br />
+          If you are a student, please contact your class instructor for approval to join the course you registered with.
+        </p>
+        <br />
+        <p>You can still update your account information with the appropriate buttons below.</p>
         <p>
-          <a class="btn-sm btn-primary" href="{% url 'update_profile' %}">
+          <a class="btn-sm btn-primary" href="#">
             update info
           </a>
         </p>
-        {% if not user.is_superuser %}
-          <p>
-            <a class="btn-sm" href="{% url 'change_password' %}">
-              change password
-            </a>
-          </p>
-        {% endif %}
+        <p>
+          <a class="btn-sm" href="#">
+            change password
+          </a>
+        </p>
       </div>
     </div>
   </div>

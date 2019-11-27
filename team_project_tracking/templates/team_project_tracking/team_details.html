@@ -36,12 +36,19 @@
                 <table class="table table-striped">
                     <tr>
                         <td>{{ 'Course' }}</td>
-                        {% if team.course is none %}
-                            <td>{{ 'information missing' }}</td>
+                        {% if team.course_offering %}
+                            <td>{{ team.course_offering }}</td>
                         {% else %}
-                            <td>{{ team.course.course_name }}</td>
+                            <td>{{ 'information missing' }}</td>
                         {% endif %}
                     </tr>
+                    <tr>
+                        <td>{{ 'Created By' }}</td>
+                        {% if team.team_creator %}
+                            <td>{{ team.team_creator }}</td>
+                        {% else %}
+                            <td>{{ 'information missing' }}</td>
+                        {% endif %}
                     <tr>
                         <td>{{ 'Number of Members' }}</td>
                         {% if community.population %}

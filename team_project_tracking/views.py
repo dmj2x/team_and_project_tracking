@@ -60,7 +60,7 @@ def login_view(request):
 			messages.success(request, 'You\'re logged in!')
 			if next:
 				return redirect(request, next)
-			return redirect('home')
+			return redirect('user_profile')
 		except ObjectDoesNotExist:
 			logger.error("non identified user tried to login into the system")
 			messages.error(request, 'you don\'t permission to access this system')
@@ -102,17 +102,12 @@ class PasswordResetCompleteView(PasswordResetCompleteView):
 @login_required
 def home(request):
 	""" view function for home page """
+	return render(request,'home.html')
 
-	# object count for charts
-	num_courses = 2 #Course.objects.all().count()
-	return render(
-		request,
-		'home.html',
-		{
-			'courses': num_courses,
-		}
-	)
 
+@login_required
+def first_info_page(request):
+	return render(request, 'team_project_tracking/first_info_page.html')
 
 
 def register(request):
@@ -163,6 +158,56 @@ def register(request):
 		logging.debug('A debug message!')
 		messages.error(request, 'an error occured and registration was not successful')
 		return redirect('landing_page')
+
+
+@login_required
+def user_profile(request):
+	"""
+		function accepts get requests only
+		GET: returns current user's profile information
+	"""
+	try:
+		# u.user_with_role.count()
+		user_info = User.objects.get(pk=request.user.id)
+		return render(request, 'team_project_tracking/user_profile.html', {'user_info': user_info} )
+	except Exception as e:
+		print('Error in user profile: %s' % e)
+		logger.debug("an error occurred trying to view a user profile")
+		messages.error(request,
+			'an error occurred trying to view a user profile. The Site Administrator will be notified!')
+		return redirect('home')
+
+
+# @login_required
+# def change_password(request):
+# 	"""
+# 		function accepts get and post requests
+# 		GET:  returns a password change form
+# 		POST:
+# 			- user password is updated
+# 			- user is redirected to login page to be reauthenticated
+# 	"""
+# 	if request.method == 'POST':
+# 		password_form = PasswordChangeForm(request.user, request.POST)
+# 		try:
+# 			if password_form.is_valid():
+# 				user = password_form.save()
+# 				update_session_auth_hash(request, user)
+# 				messages.success(request, 'Your password was successfully updated!')
+# 				return redirect(reverse('login') + '?next=/medwater/user_profile/')
+# 			else:
+# 				logger.warning("password change failed")
+# 				messages.error(request, 'Password change failed! Make sure the old password is correct!')
+# 		except ObjectDoesNotExist:
+# 			logger.error("error occured when a user tried to make a password change")
+# 			messages.error(request,
+# 				'an error occured truing to change your password. The site administrator will be notified!')
+# 		return redirect('user_profile')
+# 	else:
+# 		password_form = PasswordChangeForm(request.user)
+# 		return render(request, 'medwater/change_password.html', {'password_form': password_form})
+
+
 
 
 @login_required
@@ -225,24 +270,34 @@ def edit_user_role(request, pk):
 
 @login_required
 def assign_role(request):
-	if request.method == 'POST':
-		form = UserRoleForm(request.POST)
-		if form.is_valid():
-			course = form.cleaned_data.get('course')
-			user = form.cleaned_data.get('user')
-			role = form.cleaned_data.get('role')
-			new_user_role = UserRole(
-				role=role,
-				course=course,
-				user=user
-				)
-			new_user_role.save()
-			messages.success(request, 'role assigned successfully!')
-			# TODO: will be routing to admin page to view members with roles
-		return redirect('home')
-	else:
-		form = UserRoleForm()
-	return render(request, 'team_project_tracking/assign_role_form.html', {'form': form})
+	try:
+		if request.user.is_superuser:
+			if request.method == 'POST':
+				form = UserRoleForm(request.POST)
+				if form.is_valid():
+					course_offering = form.cleaned_data.get('course_offering') 
+					user = form.cleaned_data.get('user')
+					role = form.cleaned_data.get('role')
+					new_user_role = UserRole(
+						role=role,
+						course_offering=course_offering,
+						user=user
+						)
+					new_user_role.save()
+					messages.success(request, 'role assigned successfully!')
+					return redirect('home')
+				else:
+					messages.warning(request, 'role was not assigned')
+					# return redirect('home')
+					return render(request, 'team_project_tracking/assign_role_form.html', {'form': form})
+			else:
+				form = UserRoleForm()
+				return render(request, 'team_project_tracking/assign_role_form.html', {'form': form})
+		else:
+			messages.warning(request, 'you don\'t have permission to aassign roles!')
+			return redirect('home')
+	except Exception as e:
+		logging.debug(e)
 
 
 @login_required

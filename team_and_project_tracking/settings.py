@@ -60,6 +60,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-info',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}
+
 ROOT_URLCONF = 'team_and_project_tracking.urls'
 
 TEMPLATES = [
@@ -86,26 +94,24 @@ WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': config('DB_NAME'),
-#         'USER': config('DB_USER'),
-#         'PASSWORD': config('DB_PASSWORD'),
-#         'HOST': config('DB_HOST'),
-#         'PORT': config('DB_PORT'),
-#         'TEST': {
-#             'NAME': config('TESTDB_NAME'),
-#             'USER': config('DB_USER'),
-#             'PASSWORD': config('DB_PASSWORD'),
-#             # 'ENGINE': 'django.db.backends.sqlite3',
-#             # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),    
-#         }
-#     },
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+        'TEST': {
+            'NAME': config('TESTDB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+        }
+    },
+}
 
 
-DATABASES = { 'default' : dj_database_url.config()}
+# DATABASES = { 'default' : dj_database_url.config()}
 
 
 

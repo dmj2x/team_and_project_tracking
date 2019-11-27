@@ -41,6 +41,20 @@ COURSE_STATUS_CHOICES=(
 )
 
 
+def get_first_name(self):
+    if (self.first_name and self.last_name):
+        return '%s %s' % (self.first_name, self.last_name)
+    elif (self.first_name):
+        return self.first_name
+    elif (self.last_name):
+        return self.last_name
+    elif (self.username):
+        return self.username
+    else:
+        return self.email
+
+User.add_to_class("__str__", get_first_name)
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     
@@ -103,14 +117,17 @@ class UserRole(models.Model):
                                     null=False, related_name='user_role', blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                                     null=False, related_name='user_with_role', blank=False)
-    course = models.ForeignKey('Course', on_delete=models.CASCADE,
+    course_offering = models.ForeignKey('CourseOffering', on_delete=models.CASCADE,
                                     null=False, related_name='user_course_role', blank=False)
 
     class Meta:
         db_table = 'user_role'
-        unique_together = (('role', 'user', 'course'),)
+        unique_together = (('role', 'user', 'course_offering'),)
+        indexes = [
+            models.Index(fields=['role', 'user', 'course_offering'])
+        ]
     def __str__(self):
-        return '%s for %s in %s' % (self.role, self.user, self.course)
+        return '%s for %s in %s' % (self.role, self.user, self.course_offering)
 
 
 class Team(models.Model):
