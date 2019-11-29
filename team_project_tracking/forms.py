@@ -197,14 +197,12 @@ class RoleForm(forms.ModelForm):
 class UserRoleForm(forms.ModelForm):
     class Meta:
         model = UserRole
-        fields = ['role', 'user', 'course_offering']
+        fields = ['role', 'user']
         labels = {
-            'course': 'Course',
             'user': 'User',
             'role': 'Role',
         }
         widgets = {
-            'course_offering': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
             'user': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
             'role': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
         }
@@ -250,7 +248,13 @@ def year_choices():
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['course_name', 'course_number', 'course_description']
+        fields = ['course_name', 'course_number', 'course_description', 'faculty']
+        labels = {
+            'faculty': 'Faculty',
+        }
+        widgets = {
+            'faculty': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+        }
     course_name = forms.CharField(
         label='Course Name',
         max_length=100,
@@ -292,16 +296,7 @@ class CourseForm(forms.ModelForm):
 class CourseOfferingForm(forms.ModelForm):
     class Meta:
         model = CourseOffering
-        fields = ['faculty', 'teaching_assistant', 'semester', 'year']
-        labels = {
-            'faculty': 'Faculty / Instructor(s)',
-            'teaching_assistant': 'Teaching Assistant(s)'
-        }
-        widgets = {
-            'course': forms.Select(attrs={
-                'class': 'form-control col-6 col-md-4',
-            }),
-        }
+        fields = ['semester', 'year']
     semester = forms.ChoiceField(
         label='Semester',
         choices=SEMESTER_CHOICES,
@@ -326,11 +321,24 @@ class CourseOfferingForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        course = cleaned_data.get('course')
-        faculty = cleaned_data.get('faculty')
-        teaching_assistant = cleaned_data.get('teaching_assistant')
         semester = cleaned_data.get('semester')
         year = cleaned_data.get('year')
+
+
+class JoinCourseForm(forms.ModelForm):
+    class Meta:
+        model = CourseStudent
+        fields = ['course_offering']
+        labels = {
+            'course_offering': 'Course',
+        }
+        widgets = {
+            'course_offering': forms.Select(attrs={'class': 'form-control col-6 col-md-4'}),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        course_offering = cleaned_data.get('course_offering')
 
 
 class CreateTeamForm(forms.ModelForm):

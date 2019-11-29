@@ -105,10 +105,6 @@ def home(request):
 	return render(request,'home.html')
 
 
-@login_required
-def first_info_page(request):
-	return render(request, 'team_project_tracking/first_info_page.html')
-
 
 def register(request):
 	"""
@@ -161,17 +157,35 @@ def register(request):
 
 
 @login_required
+def get_user_role(request):
+	user_role = ''
+	current_user = User.objects.get(pk=request.user.id)
+	check_fac_role = current_user.faculty.values().count()
+	check_stu_role = current_user.student.values().count()
+	if check_fac_role > 0 and check_stu_role < 1:
+		user_role = 'Faculty'
+	elif check_fac_role < 1 and check_stu_role > 0:
+		user_role = 'Student'
+	return user_role
+
+
+
+@login_required
 def user_profile(request):
 	"""
 		function accepts get requests only
 		GET: returns current user's profile information
 	"""
+	user_role = get_user_role(request)
+	obj, created = Profile.objects.update_or_create(user=request.user, user_role=user_role.title())
+	if created==1:
+		logging.debug("user role updated")
+	else:
+		logging.debug("user role not updated")
 	try:
-		# u.user_with_role.count()
 		user_info = User.objects.get(pk=request.user.id)
-		return render(request, 'team_project_tracking/user_profile.html', {'user_info': user_info} )
+		return render(request, 'team_project_tracking/user_profile.html', {'user_info': user_info, 'user_role':user_role} )
 	except Exception as e:
-		print('Error in user profile: %s' % e)
 		logger.debug("an error occurred trying to view a user profile")
 		messages.error(request,
 			'an error occurred trying to view a user profile. The Site Administrator will be notified!')
@@ -254,13 +268,11 @@ def edit_user_role(request, pk):
 				role_update.description = form.cleaned_data['description']
 				role_update.save()
 				messages.success(request, 'role information updated!')
-				# return redirect(comm_update.get_absolute_url())
 				# TODO: will be routing to admin page or page with list of roles
 				return redirect('home')
 			else:
 				form = RoleForm(instance=role)
 				return render(request, 'team_project_tracking/edit_role_form.html', {'form': form})
-
 	except Exception as e:
 		logging.debug(e)
 		messages.error(request, 'an error occurred, please contact site administrator!')
@@ -278,6 +290,7 @@ def assign_role(request):
 					course_offering = form.cleaned_data.get('course_offering') 
 					user = form.cleaned_data.get('user')
 					role = form.cleaned_data.get('role')
+					print('USer: %s' % user.first_name)
 					new_user_role = UserRole(
 						role=role,
 						course_offering=course_offering,
@@ -304,24 +317,24 @@ def assign_role(request):
 def unassign_role(request):
 	if request.method == 'POST':
 		form = UserRoleForm(request.POST)
-		course = form.data['course']
+		course_offering = form.data['course_offering']
 		user = form.data['user']
 		role = form.data['role']
 		try:
 			remove_user_role = UserRole.objects.filter(
 				role=role,
-				course=course,
+				course_offering=course_offering,
 				user=user).first()
 			if(remove_user_role):
 				remove_user_role.delete()
 				messages.success(request, 'user role removed successfully!')
 				return redirect('home')
 			else:
-				check_course = Course.objects.get(pk=course)
+				check_course_offering = CourseOffering.objects.get(pk=course_offering)
 				check_user = User.objects.get(pk=user)
 				check_role = Role.objects.get(pk=role)
 				messages.warning(request, "There is no user called %s with role %s in  %s course!" % (
-					check_user.first_name, check_role.role_title, check_course.course_name))
+					check_user.first_name, check_role.role_title, check_course_offering))
 				return redirect('home')
 		except Exception as e:
 			logging.debug(e)
@@ -346,9 +359,8 @@ def course_list(request):
 
 
 @login_required
-# should require system admin and faculty roles
+# should require system admin
 def add_course(request):
-	# if  request.user.has_perm('course.add_course'):
 	if request.user.is_superuser:
 		try:
 			if request.method == 'POST':
@@ -357,16 +369,25 @@ def add_course(request):
 					course_name = course_form.cleaned_data.get('course_name')
 					course_number = course_form.cleaned_data.get('course_number')
 					course_description = course_form.cleaned_data.get('course_description')
+					faculty = course_form.cleaned_data.get('faculty')
 					
-					num_results = Course.objects.filter(course_name=course_name.title(), course_number=course_number).count()
+					num_results = Course.objects.filter(course_name=course_name.title(), course_number=course_number, faculty=faculty).count()
 					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
 					if num_results < 1:
 						course = Course(
 							course_name=course_name.title(),
 							course_number=course_number,
-							course_description=course_description
+							course_description=course_description,
+							faculty=faculty
 						)
 						course.save()
+						# assign faculty role to registered faculty
+						faculty_role = Role.objects.get(role_title='Faculty')
+						assign_role, created = UserRole.objects.get_or_create(
+							role=faculty_role,
+							user=faculty
+						)
+						print('created: %s' % created)
 						messages.success(request, 'Course successfully added!')
 					else:
 						messages.info(request, 'a course with name %s already exists!' % course_name)
@@ -388,69 +409,73 @@ def add_course(request):
 
 @login_required
 def add_course_offering(request, pk):
-	if request.user.is_superuser: # should require system admin and or faculty roles
-		try:
-			if request.method == 'POST':
-				course_offering_form = CourseOfferingForm(request.POST)
-				if course_offering_form.is_valid():
-					course = Course.objects.get(pk=pk)
-					faculty = course_offering_form.cleaned_data.get('faculty')
-					teaching_assistant = course_offering_form.cleaned_data.get('teaching_assistant')
-					semester = course_offering_form.cleaned_data.get('semester')
-					year = course_offering_form.cleaned_data.get('year')
-					
-					num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year, faculty=faculty).count()
-					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
-					if num_results < 1:
-						course_offer = CourseOffering(
-							course = course,
-							faculty = faculty,
-							teaching_assistant = teaching_assistant,
-							semester=semester,
-							year=year
-						)
-						course_offer.save()
-						messages.success(request, 'Course offering successfully added!')
+	user_role = get_user_role(request)
+	if pk and user_role=='Faculty':
+		course = Course.objects.get(pk=pk)
+		if request.user == course.faculty or request.user.is_superuser:
+			try:
+				if request.method == 'POST':
+					course_offering_form = CourseOfferingForm(request.POST)
+					if course_offering_form.is_valid():
+						semester = course_offering_form.cleaned_data.get('semester')
+						year = course_offering_form.cleaned_data.get('year')
+						
+						num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year).count()
+						# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
+						if num_results < 1:
+							course_offer = CourseOffering(
+								course = course,
+								semester=semester,
+								year=year
+							)
+							course_offer.save()
+							messages.success(request, 'Course offering successfully added!')
+						else:
+							messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
+						return redirect('course_details', pk)
 					else:
-						messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
-					# TODO: should redirect to course list
-					return redirect('course_details', pk)
+						return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
 				else:
-					return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
-			else:
-				course_offering_form = CourseOfferingForm()
-				return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form, "course_id":pk})
-		# except Exception as e:
-		except PermissionDenied:
-			messages.error(request, 'an error occurred, please contact site administrator!')
-			# TODO: this will redirect to a custom 404 page
+					course_offering_form = CourseOfferingForm()
+					return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form, "course_id":pk})
+			except Exception as e:
+
+				messages.error(request, 'an error occurred, please contact site administrator!')
+				return redirect('home')
+		else:
+			messages.warning(request, 'you don\'t have the required permission to add a new course')
 			return redirect('home')
 	else:
-		messages.warning(request, 'you don\'t have the required permission to add a new course')
+		messages.warning(request, 'an error occurred, please contact site administrator!')
 		return redirect('home')
 
 
 @login_required
 def course_details(request, pk):
+	user_role = get_user_role(request)
 	try:
 		if (pk):
-			# print('course id: %s' % pk)
 			course = Course.objects.get(pk=pk)
-			course_offering, current_offering, course_teams = [], [], []
+			course_offering, current_offering, course_teams, current_students = [], [], [], []
 			try:
 				current_offering = CourseOffering.objects.filter(course=course).last()
-				course_offering = CourseOffering.objects.filter(course=course).order_by('year').exclude(id=current_offering.id)
-				course_teams = Team.objects.filter(course_offering=current_offering)
+				if current_offering:
+					course_offering = CourseOffering.objects.filter(course=course).order_by('year').exclude(id=current_offering.id)
+					course_teams = Team.objects.filter(course_offering=current_offering)
+					current_students = CourseStudent.objects.filter(course_offering=current_offering).exclude(student_role="teaching-assistant", student_status='declined')
+					
 			except Exception as e:
 				logger.debug(e)
 				# print("Course is missing more info")
 			return render(request, 
 				'team_project_tracking/course_detail.html', 
 				{
-					'course' : course, 
+					'course' : course,
+					'user_role' : user_role,
 					'course_offering' : course_offering,
 					'current_offering' : current_offering,
-					'course_teams' : course_teams
+					'course_teams' : course_teams,
+					'current_students' : current_students
 				}
 			)
 	except Course.DoesNotExist:
@@ -484,6 +509,83 @@ def edit_course_info(request, pk):
 		messages.error(request, 'an error occurred trying to edit course information!')
 		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
+
+
+
+@login_required
+def join_course(request):
+	if not request.user.faculty.values(): # or request.user.profile.user_role=="Student"
+		try:
+			if request.method == 'POST':
+				join_course_form = JoinCourseForm(request.POST)
+				if join_course_form.is_valid():
+					course_offering = join_course_form.cleaned_data.get('course_offering')
+					num_results = CourseOffering.objects.get(pk=course_offering.id)
+					if num_results:
+						course_student = CourseStudent(
+							course_offering = course_offering,
+							student = request.user
+						)
+						course_student.save()
+						messages.success(request, 'Your request to join %s has been made' % course_offering)
+						return redirect('user_profile')
+					else:
+						messages.warning(request, 'The selected course offering does not exist. Please make sure to check all fields!')
+						return render(request, 'team_project_tracking/join_course_form.html', {'form': join_course_form})
+				else:
+					messages.error(request, 'Please make sure to check all fields!')
+					return render(request, 'team_project_tracking/join_course_form.html', {'form': join_course_form})
+			else:
+				join_course_form = JoinCourseForm()
+				return render(request, 'team_project_tracking/join_course_form.html', {'form': join_course_form})
+		except Exception as e:
+			messages.error(request, 'an error occurred, please contact site administrator!')
+			return redirect('home')
+	else:
+		messages.warning(request, 'You don\'t have the right access to perform that action!')
+		return redirect('home')
+
+
+@login_required
+def approve_student(request, course_id, course_stu_id):
+	try:
+		course = Course.objects.get(pk=course_id)
+		if course.faculty == request.user:
+			update_course_stu = CourseStudent.objects.filter(pk=course_stu_id).update(student_status='approved')
+			if update_course_stu==1:
+				messages.success(request, 'Student Approved')
+			else:
+				messages.error(request, 'Oops! Student status was not updated')
+			return redirect('course_details', course_id)
+		else:
+			messages.error(request, 'You don\'t have permission to perform that action!')
+			return redirect('home')
+	except Exception as e:
+		logger.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
+		return redirect('home')
+
+
+
+@login_required
+def decline_student(request, course_id, course_stu_id):
+	try:
+		course = Course.objects.get(pk=course_id)
+		if course.faculty == request.user:
+			update_course_stu = CourseStudent.objects.filter(pk=course_stu_id).update(student_status='decined')
+			if update_course_stu==1:
+				messages.success(request, 'Student Request Declined')
+			else:
+				messages.error(request, 'Oops! Student status was not updated')
+			return redirect('course_details', course_id)
+		else:
+			messages.error(request, 'You don\'t have permission to perform that action!')
+			return redirect('home')
+	except Exception as e:
+		logger.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
+		return redirect('home')
+
 
 
 @login_required

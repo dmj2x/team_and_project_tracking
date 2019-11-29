@@ -2,35 +2,80 @@
 
 {% block content %}
   <div class="container">
-    <div class="card" style="width: 18rem;">
       <br/>
-      <h6 class="text-center">
+      <h2 class="text-center">
         {% if user_info.first_name %}
           Hi {{ user_info.first_name }}
         {% else %}
           {{ 'Hi there!!' }}
         {% endif %}
-      </h6>
-      <div class="card-body">
-        <p class="card-text">Email: {{ user_info.email }}</p>
-        <p class="card-text">
+      </h2>
+      <br />
+      <blockquote class="blockquote">
+        <p class="mb-0">
           If you are a faculty member, please contact your system admin to get access to manage your course.
-          <br />
-          <br />
+        </p>
+        <p class="mb-0">
           If you are a student, please contact your class instructor for approval to join the course you registered with.
         </p>
+      </blockquote>
         <br />
-        <p>You can still update your account information with the appropriate buttons below.</p>
-        <p>
-          <a class="btn-sm btn-primary" href="#">
-            update info
-          </a>
-        </p>
-        <p>
-          <a class="btn-sm" href="#">
-            change password
-          </a>
-        </p>
+  </div>
+  <div class="container">
+    <br/>
+    <div class="container">
+      <div style="margin-left:20px;margin-top:20px">
+        <h5>Teams Your are a member of</h5>
+        <hr>
+        {% if funding.funding.all %}
+          <table class="table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">project</th>
+                <th scope="col">amount donated</th>
+                <th scope="col">date received</th>
+              </tr>
+            </thead>
+            <tbody>
+              <p>click on project to edit its funding details</p>
+              {% for p_funded in funding.funding.all %}
+                <tr>
+                  <td>
+                    <a href="#">
+                      {{p_funded.project.project_name}}
+                    </a>
+                  </td>
+                  <td>${{p_funded.amount}}</td>
+                  <td>{{p_funded.date_received}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p> You are not a member of any team</p>
+        {% endif %}
+        <br/>
+        <h5>Actions</h5>
+        <hr>
+        <div class="row">
+          <p class="col-4">
+            <a href="#">
+              {{ 'change password' }}
+            </a>
+          </p>
+          <p class="col-4">
+            <a href="#">
+              {{ 'update your info' }}
+            </a>
+          </p>
+          {% if user_role and user_role == 'Student' %}
+            <p class="col-4">
+              <a href="{% url 'join_course' %}">
+                {{ 'join a class' }}
+              </a>
+            </p>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

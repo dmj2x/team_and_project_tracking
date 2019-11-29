@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Max
 from django.urls import reverse
@@ -39,7 +40,15 @@ COURSE_STATUS_CHOICES=(
     ('active', 'active'),
     ('discontinued', 'discontinued'),
 )
-
+STUDENT_ROLE_CHOICES=(
+    ('student', 'student'),
+    ('teaching-assistant', 'teaching-assistant'),
+)
+STUDENT_STATUS_CHOICES=(
+    ('pending-approval', 'pending-approval'),
+    ('approved', 'approved'),
+    ('decined', 'declined'),
+)
 
 def get_first_name(self):
     if (self.first_name and self.last_name):
@@ -57,6 +66,7 @@ User.add_to_class("__str__", get_first_name)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_role = models.CharField(max_length=25, blank=True, null=True)
     
     class Meta:
         db_table = 'profile'
@@ -68,6 +78,8 @@ class Course(models.Model):
     course_name = models.CharField(max_length=100, blank=False, null=False)
     course_number = models.CharField(max_length=12, null=False, blank=False)
     course_description = models.TextField(null=True, blank=True)
+    faculty = models.ForeignKey(User, on_delete=models.CASCADE, 
+                                        null=False, related_name='faculty', blank=False)
 
     class Meta:
         db_table = 'course'
@@ -80,24 +92,41 @@ class Course(models.Model):
 class CourseOffering(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE,
                                     null=False, related_name='course', blank=False)
-    faculty = models.ForeignKey(User, on_delete=models.CASCADE,
-                                    null=False, related_name='faculty', blank=False)
-    teaching_assistant = models.ForeignKey(User, on_delete=models.CASCADE,
-                                    null=True, related_name='teaching_assistant', blank=True)
     semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES, null=False, blank=False, default='--')
     year = PartialDateField(null=False, blank=False)
     course_status = models.CharField(max_length=10, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
     
     class Meta:
         db_table = 'course_offering'
-        unique_together = (('course', 'semester', 'year', 'faculty'),)
-        indexes = [
-            models.Index(fields=['course', 'semester', 'year', 'faculty'])
-        ]
+        unique_together = (('course', 'semester', 'year'),)
+        # indexes = [
+        #     models.Index(fields=['course', 'semester', 'year'])
+        # ]
     # def get_absolute_url(self):
     #     return reverse('course_details', args=[str(self.id)])
     def __str__(self):
         return '%s, %s%s' % (self.course, self.semester, self.year)
+
+
+
+class CourseStudent(models.Model):
+    course_offering = models.ForeignKey('CourseOffering', on_delete=models.CASCADE,
+                                    null=False, related_name='course_offering', blank=False)
+    student = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    null=True, related_name='student', blank=True)
+    student_role = models.CharField(max_length=20, choices=STUDENT_ROLE_CHOICES, 
+                                    null=False, blank=False, default='student')
+    student_status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, 
+                                    null=False, blank=False, default='pending-approval')
+    
+    class Meta:
+        db_table = 'course_student'
+        unique_together = (('course_offering', 'student', 'student_role'),)
+        # indexes = [
+        #     models.Index(fields=['course_offering', 'student'])
+        # ]
+    def __str__(self):
+        return '%s is a student in %s' % (self.student, self.course_offering)
 
 
 class Role(models.Model):
@@ -117,17 +146,15 @@ class UserRole(models.Model):
                                     null=False, related_name='user_role', blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                                     null=False, related_name='user_with_role', blank=False)
-    course_offering = models.ForeignKey('CourseOffering', on_delete=models.CASCADE,
-                                    null=False, related_name='user_course_role', blank=False)
 
     class Meta:
         db_table = 'user_role'
-        unique_together = (('role', 'user', 'course_offering'),)
+        unique_together = (('role', 'user',),)
         indexes = [
-            models.Index(fields=['role', 'user', 'course_offering'])
+            models.Index(fields=['role', 'user',])
         ]
     def __str__(self):
-        return '%s for %s in %s' % (self.role, self.user, self.course_offering)
+        return '%s is %s' % (self.user, self.role)
 
 
 class Team(models.Model):

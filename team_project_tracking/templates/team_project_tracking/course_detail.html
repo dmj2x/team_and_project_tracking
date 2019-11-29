@@ -4,12 +4,7 @@
 <div class="container-fluid">
   <div class="container">
     <h1>
-      {{ course.course_name }} 
-      {{ ' by Prof. ' }}
-      {% if current_offering.faculty %}
-        {{ current_offering.faculty.first_name }}
-        {{ current_offering.faculty.last_name }}
-      {% endif %}
+      {{ course.course_name }} {{ ' by Prof. ' }} {{ course.faculty }}
     
     </h1>
         <table class="table">
@@ -47,132 +42,207 @@
               </tr>
             </table>
             <br/>
-            <div id="accordion">
+            {% if user.profile.user_role == 'Faculty' or user.is_superuser %}
+              <div id="accordion">
+                <div class="card">
+                  <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                      <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Teams in course
+                      </button>
+                  </h5>
+                  </div>
+                  
+                  <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                      <div class="container">
+                        <br />
+                        {% if course_teams %}
+                          <table class="table table-hover">
+                            <caption>List of course teams</caption>
+                            <thead class="thead-light">
+                              <tr>
+                                <th scope="col">Team</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Creator</th>
+                              </tr>
+                            </thead>
+                            
+                            <tbody>
+                              {% for team in course_teams %}
+                                <tr>
+                                  {% if team.team_name %}
+                                    <td>
+                                        <a href="{{ team.get_absolute_url }}">{{ team.team_name }}</a>
+                                    </td>
+                                  {% else %}
+                                    <td>{{ 'information missing' }}</td>
+                                  {% endif %}
+                                  {% if team.team_status %}
+                                    <td>{{ team.team_status }}</td>
+                                  {% else %}
+                                    <td>{{ 'information missing' }}</td>
+                                  {% endif %}
+                                  {% if team.team_creator %}
+                                    <td>{{ team.team_creator }}</td>
+                                  {% else %}
+                                    <td>{{ 'information missing' }}</td>
+                                  {% endif %}
+                                </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        {% else %}
+                          <p>There are no teams for this course offering.</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+          
               <div class="card">
-                <div class="card-header" id="headingOne">
+                <div class="card-header" id="headingTwo">
                   <h5 class="mb-0">
-                    <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                      Teams in course
+                    <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      Students in Course
                     </button>
-            </h5>
-          </div>
-          
-          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-            <div class="card-body">
-              <div class="container">
-                <br />
-                {% if course_teams %}
-                  <table class="table table-hover">
-                    <caption>List of course teams</caption>
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col">Team</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Creator</th>
-                      </tr>
-                    </thead>
-                    
-                    <tbody>
-                      {% for team in course_teams %}
-                        <tr>
-                          {% if team.team_name %}
-                            <td>
-                                <a href="{{ team.get_absolute_url }}">{{ team.team_name }}</a>
-                            </td>
-                          {% else %}
-                            <td>{{ 'information missing' }}</td>
-                          {% endif %}
-                          {% if team.team_status %}
-                            <td>{{ team.team_status }}</td>
-                          {% else %}
-                            <td>{{ 'information missing' }}</td>
-                          {% endif %}
-                          {% if team.team_creator %}
-                            <td>{{ team.team_creator }}</td>
-                          {% else %}
-                            <td>{{ 'information missing' }}</td>
-                          {% endif %}
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>There are no teams for this course offering.</p>
-                {% endif %}
+                  </h5>
+                </div>
+              
+                <div id="collapseTwo" class="collapse hide" aria-labelledby="headingTwo" data-parent="#accordion">
+                  <div class="card-body">
+                    <div class="container">
+                      <br>
+                      {% if current_students %}
+                        <table class="table table-hover">
+                          <caption>List of students in course</caption>
+                          <thead class="thead-light">
+                            <tr>
+                              <th scope="col">Student</th>
+                              <th scope="col">Role</th>
+                              <th scope="col">Status</th>
+                              <th scope="col">Manage Status</th>
+                            </tr>
+                          </thead>
+                          
+                          <tbody>
+                            {% for stu in current_students %}
+                              <tr>
+                                {% if stu.student %}
+                                  <td>{{ stu.student }}</td>
+                                {% else %}
+                                  <td>{{ 'information missing' }}</td>
+                                {% endif %}
+                                {% if stu.student_role %}
+                                  <td>{{ stu.student_role }}</td>
+                                {% else %}
+                                  <td>{{ 'information missing' }}</td>
+                                {% endif %}
+                                {% if stu.student_status %}
+                                  <td>{{ stu.student_status }}</td>
+                                  <td>
+                                    {% if stu.student_status == 'pending-approval' %}
+                                      <a href="{% url 'approve_student' course.id stu.id %}">{{ 'Approve' }}</a>
+                                      &nbsp&nbsp&nbsp
+                                      <a href="{% url 'decline_student' course.id stu.id %}">{{ 'Decline' }}</a>
+                                    {% else %}
+                                      {% if stu.student_status == 'approved'%}
+                                        <a href="{% url 'decline_student' course.id stu.id %}">{{ 'Decline' }}</a>
+                                      {% else %}
+                                        <a href="{% url 'approve_student' course.id stu.id %}">{{ 'Approve' }}</a>
+                                      {% endif %}
+                                    {% endif %}
+                                    </td>
+                                {% else %}
+                                  <td>{{ 'information missing' }}</td>
+                                {% endif %}
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      {% else %}
+                        <p>There are no students registered to this course.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
               </div>
-            </div>
-          </div>
-          
-        </div>
-        
-        <div class="card">
-          <div class="card-header" id="headingTwo">
-            <h5 class="mb-0">
-              <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                Past Course Offering
-              </button>
-            </h5>
-          </div>
-          
-          <div id="collapseTwo" class="collapse hide" aria-labelledby="headingTwo" data-parent="#accordion">
-            <div class="card-body">
-              <div class="container">
-                <br>
-                {% if course_offering %}
-                  <table class="table table-hover">
-                    <caption>List of past course offerings</caption>
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col">Semester</th>
-                        <th scope="col">Year</th>
-                      </tr>
-                    </thead>
-                    
-                    <tbody>
-                      {% for offering in course_offering %}
-                        <tr>
-                          {% if offering.semester %}
-                            <td>{{ offering.semester }}</td>
-                          {% else %}
-                            <td>{{ 'information missing' }}</td>
-                          {% endif %}
-                          {% if offering.year %}
-                            <td>{{ offering.year }}</td>
-                          {% else %}
-                            <td>{{ 'information missing' }}</td>
-                          {% endif %}
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>There are no past course offerings.</p>
-                {% endif %}
+
+
+              <div class="card">
+                <div class="card-header" id="headingThree">
+                  <h5 class="mb-0">
+                    <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      Past Course Offering
+                    </button>
+                  </h5>
+                </div>
+              
+                <div id="collapseThree" class="collapse hide" aria-labelledby="headingThree" data-parent="#accordion">
+                  <div class="card-body">
+                    <div class="container">
+                      <br>
+                      {% if course_offering %}
+                        <table class="table table-hover">
+                          <caption>List of past course offerings</caption>
+                          <thead class="thead-light">
+                            <tr>
+                              <th scope="col">Semester</th>
+                              <th scope="col">Year</th>
+                            </tr>
+                          </thead>
+                          
+                          <tbody>
+                            {% for offering in course_offering %}
+                              <tr>
+                                {% if offering.semester %}
+                                  <td>{{ offering.semester }}</td>
+                                {% else %}
+                                  <td>{{ 'information missing' }}</td>
+                                {% endif %}
+                                {% if offering.year %}
+                                  <td>{{ offering.year }}</td>
+                                {% else %}
+                                  <td>{{ 'information missing' }}</td>
+                                {% endif %}
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      {% else %}
+                        <p>There are no past course offerings.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
+              </div>
+          {% endif %}
     </div>
   </div>
   <br/>
   <!-- class="btn btn-outline-dark ">{{ 'Edit Team Info' }} -->
-  <div class="container">
-    <p class="btn btn-info float-left">
-      <a class="text-light" href="{% url 'edit_course_info' course.id %}">
-        {{ 'Update Course Info' }}      
-      </a>
-    </p>
-    <p class="btn btn-info float-center">
-      <a class="text-light" href="{% url 'add_course_offering' course.id %}">
-        {{ 'Add Course Offering' }}      
-      </a>
-    </p>
-    <p class="btn btn-danger float-right">
-      <a class="text-light" href="#">
-        {{ 'delete course' }}
-      </a>
-    </p>
-  </div>
+  {% if user.profile.user_role == 'Faculty' or user.is_superuser %}
+    <div class="container">
+      <p class="btn btn-info float-left">
+        <a class="text-light" href="{% url 'edit_course_info' course.id %}">
+          {{ 'Update Course Info' }}      
+        </a>
+      </p>
+      <p class="btn btn-info float-center">
+        <a class="text-light" href="{% url 'add_course_offering' course.id %}">
+          {{ 'Add Course Offering' }}     
+        </a>
+      </p>
+      <p class="btn btn-danger float-right">
+        <a class="text-light" href="#">
+          {{ 'delete course' }}
+        </a>
+      </p>
+    </div>
+  {% endif %}
 
 {% endblock %}

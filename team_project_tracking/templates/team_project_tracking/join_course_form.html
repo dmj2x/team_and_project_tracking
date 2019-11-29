@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <div class="container">
+    <h4>Select Course to Join</h4>
+    <br/>
+    <form action="{% url 'join_course' %}" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <br/>
+      <input class="btn btn-primary" type="submit" value="Submit">
+    </form>
+
+  </div>
+
+{% endblock %}

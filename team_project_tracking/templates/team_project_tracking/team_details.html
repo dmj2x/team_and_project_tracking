@@ -43,12 +43,21 @@
                         {% endif %}
                     </tr>
                     <tr>
-                        <td>{{ 'Created By' }}</td>
-                        {% if team.team_creator %}
-                            <td>{{ team.team_creator }}</td>
+                        <td>{{ 'Course Instructor' }}</td>
+                        {% if team.course_offering.faculty %}
+                            <td>{{ team.course_offering.faculty.username }}</td>
                         {% else %}
                             <td>{{ 'information missing' }}</td>
                         {% endif %}
+                    </tr>
+                    <tr>
+                        <td>{{ 'Teaching Assistant' }}</td>
+                        {% if team.course_offering.teaching_assistant %}
+                            <td>{{ team.course_offering.teaching_assistant }}</td>
+                        {% else %}
+                            <td>{{ 'course has no assigned teaching assistant' }}</td>
+                        {% endif %}
+                    </tr>
                     <tr>
                         <td>{{ 'Number of Members' }}</td>
                         {% if community.population %}

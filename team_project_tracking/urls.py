@@ -15,7 +15,6 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('', views.landing_page, name='landing_page'),
     path('home/', views.home, name='home'),
-    path('first_info_page/', views.first_info_page, name='first_info_page'),
 
     #  user info
     path('user_profile/', views.user_profile, name='user_profile'),
@@ -42,6 +41,9 @@ urlpatterns = [
     path('course_details/<int:pk>', views.course_details, name='course_details'),
     re_path('^edit_course_info/(?P<pk>\d+)/$', views.edit_course_info, name='edit_course_info'),
     # re_path('^delete_community/(?P<pk>\d+)/$', views.delete_community, name='delete_community'),
+    path('join_course/', views.join_course, name='join_course'),
+    path('approve_student/<int:course_id>/<int:course_stu_id>', views.approve_student, name='approve_student'),
+    path('decline_student/<int:course_id>/<int:course_stu_id>', views.decline_student, name='decline_student'),
 
      #  teams
     path('create_new_team/', views.create_new_team, name='create_new_team'),

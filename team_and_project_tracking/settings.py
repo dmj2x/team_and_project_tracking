@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'whitenoise.runserver_nostatic',
     'bootstrap_datepicker_plus',
+    'django.contrib.postgres',
     'bootstrap4',
     'corsheaders',
     'unfriendly',
