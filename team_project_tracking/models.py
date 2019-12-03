@@ -163,36 +163,17 @@ class Team(models.Model):
                                     null=False, blank=False, default='pending')
     course_offering = models.ForeignKey('CourseOffering', on_delete=models.CASCADE,
                                     null=False, related_name='team_course_offering', blank=False)
-    team_creator = models.ForeignKey(User, on_delete=models.CASCADE,
-                                    null=False, related_name='team_creator', blank=False)
 
     class Meta:
         db_table = 'team'
-        unique_together = (('team_name', 'course_offering', 'team_creator'),)
+        unique_together = (('team_name', 'course_offering'),)
         indexes = [
-            models.Index(fields=['team_name', 'course_offering', 'team_creator'])
+            models.Index(fields=['team_name', 'course_offering'])
         ]
     def get_absolute_url(self):
         return reverse('team_details', args=[str(self.id)])
     def __str__(self):
         return self.team_name
-
-
-# class TeamProject(models.Model):
-#     team = models.ForeignKey('Team', on_delete=models.CASCADE,
-#                                     null=False, related_name='team_with_project', blank=False)
-#     project_name = models.CharField(blank=False, null=False, max_length=100)
-#     description = models.TextField(blank=True, null=True)
-#     project_status = models.CharField(max_length=15, choices=PROJECT_STATUS_CHOICES, 
-#                                     null=False, blank=False, default='in-progress')
-    
-#     class Meta:
-#         db_table = 'team_project'
-#         unique_together = (('team', 'project_name'),)
-#     def get_absolute_url(self):
-#         return reverse('team_project_details', args=[str(self.id)])
-#     def __str__(self):
-#         return 'Project %s for team %s' % (self.project_name, self.team)
 
 
 class TeamMember(models.Model):
@@ -201,9 +182,28 @@ class TeamMember(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE,
                                     null=False, related_name='member_with_team', blank=False)
     team_leader = models.BooleanField(null=True, blank=True, default=False)
+    team_creator = models.BooleanField(null=True, blank=True, default=False)
 
     class Meta:
         db_table = 'team_member'
         unique_together = (('team', 'member'),)
     def __str__(self):
         return '%s is a member %s' % (self.member, self.team)
+
+
+class TeamProject(models.Model):
+    team = models.ForeignKey('Team', on_delete=models.CASCADE,
+                                    null=False, related_name='team_with_project', blank=False)
+    project_name = models.CharField(blank=False, null=False, max_length=100)
+    description = models.TextField(blank=True, null=True)
+    deadline = models.DateField(auto_now=False, blank=True, null=True)
+    project_status = models.CharField(max_length=15, choices=PROJECT_STATUS_CHOICES, 
+                                    null=False, blank=False, default='in-progress')
+    
+    class Meta:
+        db_table = 'team_project'
+        unique_together = (('team', 'project_name'),)
+    def get_absolute_url(self):
+        return reverse('team_project_details', args=[str(self.id)])
+    def __str__(self):
+        return 'Project %s for team %s' % (self.project_name, self.team)

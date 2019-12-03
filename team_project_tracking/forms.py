@@ -393,4 +393,3 @@ class UpdateTeamInfoForm(forms.ModelForm):
         cleaned_data = super().clean()
         team_name = cleaned_data.get('team_name')
         course_offering = cleaned_data.get('course_offering')
-        

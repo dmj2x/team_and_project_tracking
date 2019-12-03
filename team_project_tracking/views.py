@@ -177,11 +177,19 @@ def user_profile(request):
 		GET: returns current user's profile information
 	"""
 	user_role = get_user_role(request)
-	obj, created = Profile.objects.update_or_create(user=request.user, user_role=user_role.title())
-	if created==1:
-		logging.debug("user role updated")
-	else:
-		logging.debug("user role not updated")
+	if user_role  != '':
+		try:
+			obj, created = Profile.objects.update_or_create(user=request.user, user_role=user_role.title())
+			if created==1:
+				logging.debug("user role updated")
+			else:
+				logging.debug("user role not updated")
+		except Exception as e:
+			if request.user.profile.user_role is None:
+				update_profile = Profile.objects.filter(user=request.user).update(user_role=user_role)
+				if update_profile:
+					logging.debug('and DDDDOOONNNEEE!!!!')
+
 	try:
 		user_info = User.objects.get(pk=request.user.id)
 		return render(request, 'team_project_tracking/user_profile.html', {'user_info': user_info, 'user_role':user_role} )
@@ -601,65 +609,81 @@ def teams_list(request):
 
 
 @login_required
-# TODO: must be a student or faculty of a given class
 def create_new_team(request):
-	# should require system admin and faculty roles
-	# user should be faculty or student
-	if request.user.is_superuser:
-		try:
-			if request.method == 'POST':
-				form = CreateTeamForm(request.POST)
-				if form.is_valid():
-					team_name = form.cleaned_data.get('team_name')
-					course_offering = form.cleaned_data.get('course_offering')
-					team_creator = request.user
-					if_team = Team.objects.filter(team_name=team_name.title(), course_offering=course_offering, team_creator=team_creator).count()
-					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
-					if if_team < 1:
-						new_team = Team()
-						new_team.team_name=team_name.title()
-						new_team.course_offering=course_offering
-						new_team.team_creator=team_creator
-						try:
-							role = Role.objects.get(role_title="Faculty")
-							check_user_role = UserRole.objects.get(role=role, user=request.user)
-							new_team.team_status='active'
-						except Exception as e:
-							logger.error(e)
-							new_team.team_status='pending'
-						new_team.save()
-						messages.success(request, 'Team successfully created!')
-					else:
-						# similar_teams = Team.objects.filter(team_name=team_name.title(), course_offering=course_offering, team_creator=team_creator)
-						# for team in similar_teams:
-						# 	print('Here in teams with: %s' % team)
-						messages.info(request, 'a team with name %s already exists!' % team_name)
-					return redirect('teams_list')
+	# user_role = get_user_role(request)
+	try:
+		if request.method == 'POST':
+			form = CreateTeamForm(request.POST)
+			if form.is_valid():
+				team_name = form.cleaned_data.get('team_name')
+				course_offering = form.cleaned_data.get('course_offering')
+				is_stu_valid = False
+				try:
+					is_course_stu = CourseStudent.objects.get(course_offering=course_offering, student=request.user, student_role='student')
+					if(is_course_stu.student_status=='approved'):
+						is_stu_valid=True
+				except Exception as e:
+					logger.debug(e)
+					messages.warning(request, 'you don\'t have the required permission to create a new team')
+					return redirect('user_profile')
+				if_team = Team.objects.filter(team_name=team_name.title(), course_offering=course_offering).count()
+				if is_stu_valid and if_team < 1:
+					new_team = Team()
+					new_team.team_name=team_name.title()
+					new_team.course_offering=course_offering
+					new_team.team_status='pending'
+					new_team.save()
+
+					new_member = TeamMember(
+						team = new_team,
+						member=request.user,
+						team_leader=True,
+						team_creator=True
+					)
+					new_member.save()
+					messages.success(request, 'Team successfully created!')
 				else:
-					return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
+					# 	print('Here in teams with: %s' % team)
+					messages.info(request, 'a team with name %s already exists in %s' % (team_name, course_offering))
+				return redirect('teams_list')
 			else:
-				form = CreateTeamForm()
 				return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
-		# except Exception as e:
-		except PermissionDenied:
-			messages.error(request, 'an error occurred, please contact site administrator!')
-			# TODO: this will redirect to a custom 404 page
-			return redirect('home')
-	else:
-		messages.warning(request, 'you don\'t have the required permission to add a new course')
+		else:
+			form = CreateTeamForm()
+			return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
+	except Exception as e:
+	# except PermissionDenied:
+		logger.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
+		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
 
 
 @login_required
 def team_details(request, pk):
-	try:
-		if (pk):
-			team = Team.objects.get(pk=pk)
-	except Team.DoesNotExist:
+	if (pk):
+		team = Team.objects.get(pk=pk)
+		team_members = team.team_with_member.all()
+		is_member=False
+		membership=None
+		try:
+			membership = TeamMember.objects.get(team=team, member=request.user)
+			if membership:
+				is_member = True
+		except Exception as e:
+			logger.debug(e)
+		return render(request, 
+				'team_project_tracking/team_details.html', 
+				{
+					'team' : team,
+					'is_member' : is_member,
+					'membership' : membership,
+					'team_members' : team_members
+				}
+			)
+	else:
 		messages.error(request, 'an error occurred trying to view team details!')
-		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
-	return render(request, 'team_project_tracking/team_details.html', {'team' : team})
 
 
 @login_required
@@ -674,7 +698,7 @@ def edit_team_info(request, pk):
 				team_update.course_offering = form.cleaned_data['course_offering']
 				
 				team_update.save()
-				messages.success(request, 'team successfully information updated!')
+				messages.success(request, 'team information successfully updated!')
 				return redirect(team_update.get_absolute_url())
 			else:
 				form = UpdateTeamInfoForm(instance=team)
@@ -685,6 +709,71 @@ def edit_team_info(request, pk):
 		messages.error(request, 'an error occurred trying to edit team information!')
 		# TODO: this will redirect to the appropriate page
 		return redirect('home')
+
+
+@login_required
+def add_team_member(request, team_id):
+	try:
+		if(team_id):
+			student_list = []
+			team = Team.objects.get(pk=team_id)
+			team_leader = team.team_with_member.get(member=request.user, team_leader=True)
+			course_students = CourseStudent.objects.filter(course_offering=team.course_offering, student_status='approved')
+			current_members = team.team_with_member.all()
+			if team_leader and (team_leader.member == request.user):
+				if request.method == 'POST':
+					selected_member = request.POST.getlist('member-select[]')
+					# convert the id to integers
+					member_ids = list(map(int, selected_member))
+					# print('member_ids: %s' % member_ids)
+					if (len(member_ids) + current_members.count()) > 5:
+						print('Total members: %s' % (len(member_ids) + current_members.count()))
+						messages.warning('A maximum of 5 members per team is allowed')
+						return render(request, 'team_project_tracking/add_team_member.html', 
+									{
+										'member_choices' : member_choices,
+										'team_id' : team_id
+									}
+								)
+					else:
+						try:
+							for memb_id in member_ids:
+								_stu = User.objects.get(pk=memb_id)
+								new_member = TeamMember(
+									team=team,
+									member=_stu
+								)
+								new_member.save()
+								# obj, created = TeamMember.objects.create(team=team, member=_stu)
+							messages.success(request, "members successfully added")
+						except Exception as e:
+							print('Error adding member 1 : %s' % e)
+							logger.erro("error adding members")
+							messages.error(request, "adding members was not successful!")
+						return redirect('team_details', team_id)
+				else:
+					for stu in course_students:
+						if stu not in current_members:
+							print('stu not in: %s' % stu)
+							student_list.append(stu)
+						else:
+							print('stu in: %s' % stu)
+					member_choices = [(stu.pk, stu.student) for stu in student_list]
+					return render(request, 'team_project_tracking/add_team_member.html', 
+									{
+										'member_choices' : member_choices,
+										'team_id' : team_id
+									}
+								)
+			else:
+				messages.warning('you do not have the permission to add new members')
+				return redirect('team_details', team_id)
+	except Exception as e:
+		print('Error adding members: %s' % e)
+		logger.warning("error adding members")
+		messages.error(request, "adding members was not successful!")
+		return redirect('user_profile')
+
 
 # @login_required
 # def all_admin_users(request):

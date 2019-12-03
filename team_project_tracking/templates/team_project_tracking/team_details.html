@@ -44,8 +44,8 @@
                     </tr>
                     <tr>
                         <td>{{ 'Course Instructor' }}</td>
-                        {% if team.course_offering.faculty %}
-                            <td>{{ team.course_offering.faculty.username }}</td>
+                        {% if team.course_offering.course.faculty %}
+                            <td>{{ 'Prof. '}} {{ team.course_offering.course.faculty }}</td>
                         {% else %}
                             <td>{{ 'information missing' }}</td>
                         {% endif %}
@@ -60,16 +60,16 @@
                     </tr>
                     <tr>
                         <td>{{ 'Number of Members' }}</td>
-                        {% if community.population %}
-                            <td>{{ community.population }}</td>
+                        {% if team.team_with_member %}
+                            <td>{{ team.team_with_member.count }}</td>
                         {% else %}
                             <td>{{ 'information missing' }}</td>
                         {% endif %}
                     </tr>
                     <tr>
                         <td>{{ 'Number of Projects' }}</td>
-                        {% if community.driving_dist %}
-                            <td>{{ community.driving_dist }}</td>
+                        {% if team.project %}
+                            <td>{{ team.project }}</td>
                         {% else %}
                             <td>{{ 'information missing' }}</td>
                         {%endif%}
@@ -79,92 +79,105 @@
 
             <!--When members tab is clicked-->
             <div class="tab-pane" id="2">
-                <table class="table table-hover" id="member-tab">
-                    <thead>
-                        <tr>
-                            <th>{{ 'Name' }}</th>
-                            <th>{{ 'Role' }}</th>
-                        </tr>
-                    </thead>
-                    {% if team_members %}
-                        <caption>List of team members</caption>
-                        <tr>
-                            <td>{{ team.course.course_name }}</td>
-                            <td>{{ 'role in team' }}</td>
-                        </tr>
-                    {% endif %}
-                </table>
-                
-                {% if not projects %}
+                {% if team_members %}
+                    <table class="table table-hover" id="member-tab">
+                        <thead>
+                            <tr>
+                                <th>{{ 'Name' }}</th>
+                                <th>{{ 'Role' }}</th>
+                            </tr>
+                        </thead>
+                            <caption>List of team members</caption>
+                            <tr>
+                                {% for tm in team_members %}
+                                    <td>{{ tm.member }}</td>
+                                    {% if tm.team_leader %}
+                                        <td>{{ 'Team Leader' }}</td>
+                                    {% else %}
+                                        <td>{{ 'Team Leader' }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                    </table>
+                {% else %}
                     <div class="text-center">
                         <br>
                         <b>{{ 'No team members' }}</b>
                     </div>
                 {% endif %}
 
-                {% with team_id=team.id %}
-                    <div class="text-center">
-                        <br />
-                        <a class="btn btn-info btn-outline-dark" href="#">Add New Member</a>
-                        <a class="btn btn-outline-info" href="#">Remove Member</a>
-                    </div>
-                {% endwith %}
+                {% if membership %}
+                    {% if membership.team_leader or membership.team_creator %}
+                        {% with team_id=team.id %}
+                            <div class="text-center">
+                                <br />
+                                <a class="btn btn-info btn-outline-dark" href="{% url 'add_team_member' team.id %}">Add New Member</a>
+                                <a class="btn btn-outline-danger" href="#">Remove Member</a>
+                            </div>
+                        {% endwith %}
+                    {% endif %}
+                {% endif %}
 
             </div>
 
             <!--When projects tab is clicked-->
             <div class="tab-pane" id="3">
-                <table class="table table-hover" id="projects-tab">
-                    <thead>
-                        <tr>
-                            <th>{{ 'Name' }}</th>
-                            <th>{{ 'Short Description' }}</th>
-                            <th>{{ 'Deadline' }}</th>
-                        </tr>
-                    </thead>
-                    {% if projects %}
+                {% if tema_projects %}
+                    <table class="table table-hover" id="projects-tab">
+                        <thead>
+                            <tr>
+                                <th>{{ 'Name' }}</th>
+                                <th>{{ 'Short Description' }}</th>
+                                <th>{{ 'Deadline' }}</th>
+                            </tr>
+                        </thead>
                         <caption>{{ 'List of team projects' }}</caption>
                         <tr>
                             <td class="btn btn-light">{{ project.name }}</td>
                             <td>{{ project.desscription }}</td>
                             <td>{{ project.deadline }}</td>
                         </tr>
-                    {% endif %}
-                </table>
+                    </table>
 
-                {% if not projects %}
+                {% else %}
                     <div class="text-center">
                         <br>
                         <b>{{ 'No existing team Projects' }}</b>
                     </div>
                 {% endif %}
 
-                {% with team_id=team.id %}
-                    <div class="text-center">
-                        <br>
-                        <a class="btn btn-outline-dark" href="#">Add New Project</a>
-                    </div>
-                {% endwith %}
+                {% if membership %}
+                    {% with team_id=team.id %}
+                        <div class="text-center">
+                            <br>
+                            <a class="btn btn-outline-dark" href="#">Add New Project</a>
+                        </div>
+                    {% endwith %}
+                {% endif %}
             </div>
         </div>
     </div>
-      <br/>
+    <br/>
     </div>
   </div>
-  <br/>
-  <div class="container edit-btn">
-    <p class="btn btn-info float-left">
-        <a class="text-light" href="{% url 'edit_team_info' team.id %}">
-            {{ 'Edit Team Info' }}      
-        </a>
-    </p>
-</div>
-  <div class="container">
-    <p class="btn btn-danger float-right">
-      <a class="text-light" href="#">
-        {{ 'Leave team' }}
-      </a>
-    </p>
-  </div>
+<br/>
+{% if membership %}
+    {% if membership.team_leader or membership.team_creator %}
+        <div class="container edit-btn">
+            <p class="btn btn-info float-left">
+                <a class="text-light" href="{% url 'edit_team_info' team.id %}">
+                    {{ 'Edit Team Info' }}      
+                </a>
+            </p>
+        </div>
+    {% endif %}
+    <div class="container">
+        <p class="btn btn-danger float-right">
+            <a class="text-light" href="#">
+                {{ 'Leave team' }}
+            </a>
+        </p>
+    </div>
+{% endif %}
 
 {% endblock %}
