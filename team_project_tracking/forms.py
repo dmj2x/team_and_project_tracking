@@ -398,7 +398,7 @@ class UpdateTeamInfoForm(forms.ModelForm):
         course_offering = cleaned_data.get('course_offering')
 
 
-class ProjectForm(forms.ModelForm):
+class TeamProjectForm(forms.ModelForm):
     class Meta:
         model = TeamProject
         fields = ['project_name', 'description', 'deadline']
@@ -414,7 +414,7 @@ class ProjectForm(forms.ModelForm):
             }
     ), )
     description = forms.CharField(
-    label='Project Description',
+    label='Short Description',
     required=False,
     widget=forms.Textarea(
     attrs={
@@ -443,3 +443,52 @@ class ProjectForm(forms.ModelForm):
                 'placeholder': 'format YYYY-MM-DD'
             }
         ), )
+
+
+
+class ProjectUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ProjectUpdate
+        fields = ['update_title', 'update_notes', 'date']
+    update_title = forms.CharField(
+        label='Title of this update',
+        max_length=20,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter update title',
+            }
+        ), )
+    date = forms.DateField(
+        label='Date',
+        widget=DatePickerInput(
+            options = {
+                "format": 'YYYY-MM-DD',
+                "showClose": True,
+                "showClear": True,
+                "showTodayButton": True,
+                'widgetPositioning': {
+                    'horizontal': 'right',
+                    'vertical': 'auto'
+                },
+            },
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'placeholder': 'format YYYY-MM-DD'
+            }
+        ), )
+    update_notes = forms.CharField(
+        label='Update Notes',
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+            }
+        ), )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        update_title = cleaned_data.get('update_title')
+        date = cleaned_data.get('date')
+        update_notes = cleaned_data.get('update_notes')

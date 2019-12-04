@@ -40,7 +40,7 @@ urlpatterns = [
     path('course_list/', views.course_list, name='course_list'),
     path('course_details/<int:pk>', views.course_details, name='course_details'),
     re_path('^edit_course_info/(?P<pk>\d+)/$', views.edit_course_info, name='edit_course_info'),
-    # re_path('^delete_community/(?P<pk>\d+)/$', views.delete_community, name='delete_community'),
+    # re_path('^delete_course/(?P<pk>\d+)/$', views.delete_course, name='delete_course'),
     path('join_course/', views.join_course, name='join_course'),
     path('approve_student/<int:course_id>/<int:course_stu_id>', views.approve_student, name='approve_student'),
     path('decline_student/<int:course_id>/<int:course_stu_id>', views.decline_student, name='decline_student'),
@@ -52,5 +52,10 @@ urlpatterns = [
     re_path('^edit_team_info/(?P<pk>\d+)/$', views.edit_team_info, name='edit_team_info'),
     path('add_team_member/<int:team_id>', views.add_team_member, name="add_team_member"),
     path('remove_team_member/<int:team_id>', views.remove_team_member, name="remove_team_member"),
+    # project
+    path('add_project/<int:team_id>', views.add_project, name="add_project"),
+    path('team_project_details/<int:pk>', views.team_project_details, name="team_project_details"),
+    path('add_project_update/<int:proj_id>/<int:team_id>', views.add_project_update, name="add_project_update"),
+    path('delete_project/<int:proj_id>/<int:team_id>', views.delete_project, name='delete_project'),
 
 ]

@@ -672,6 +672,7 @@ def team_details(request, pk):
 	if (pk):
 		team = Team.objects.get(pk=pk)
 		team_members = team.team_with_member.all()
+		team_projects = team.team_with_project.all()
 		is_member=False
 		membership=None
 		try:
@@ -686,7 +687,8 @@ def team_details(request, pk):
 					'team' : team,
 					'is_member' : is_member,
 					'membership' : membership,
-					'team_members' : team_members
+					'team_members' : team_members,
+					'team_projects' : team_projects
 				}
 			)
 	else:
@@ -836,41 +838,127 @@ def add_project(request, team_id):
 				current_memb_list.append(memb.member)
 			if (request.user in current_memb_list):
 				if request.method == 'POST':
-					project_form = ProjectForm(request.POST)
+					project_form = TeamProjectForm(request.POST)
 					if project_form.is_valid():
 						project_name = project_form.cleaned_data.get('project_name')
 						description = project_form.cleaned_data.get('description')
 						deadline = project_form.cleaned_data.get('deadline')
 						
-						num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year).count()
-						if num_results < 1:
-							course_offer = CourseOffering(
-								course = course,
-								semester=semester,
-								year=year
+						is_proj = TeamProject.objects.filter(team=team, project_name=project_name.title()).count()
+						if is_proj < 1:
+							new_project = TeamProject(
+								team=team, 
+								project_name=project_name.title(),
+								description=description,
+								deadline=deadline
 							)
-							course_offer.save()
-							messages.success(request, 'Course offering successfully added!')
+							new_project.save()
+							messages.success(request, 'project successfully added!')
 						else:
-							messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
-						return redirect('course_details', pk)
+							messages.info(request, 'Team  %s,  already has a project called %s' % (team.team_name, project_name.title()))
+						return redirect('team_details', team_id)
 					else:
-						return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
+						messages.error(request, "adding new team project was not successful!")
+						return render(request, 'team_project_tracking/add_team_project.html', {'form': project_form})	
+				else:
+					project_form = TeamProjectForm()
+					return render(request, 
+						'team_project_tracking/add_team_project_form.html', 
+						{
+							'form': project_form,
+							'team_id':team_id
+						})
 			else:
-				messages.warning('you do not have the permission to add new members')
-				return redirect('team_details', team_id)
+				messages.warning('you do not have the permission to add new projects')
+				return redirect('user_profile')
 	except Exception as e:
-		logger.warning("error adding members")
-		messages.error(request, "adding new member was not successful!")
+		logging.warning("error adding team project")
+		messages.error(request, "adding new team project was not successful!")
+		return redirect('team_details', team_id)
+
+
+
+
+@login_required
+def team_project_details(request, pk):
+	try:
+		if pk:
+			project = TeamProject.objects.get(pk=pk)
+			project_updates = project.project_update.all()
+			return render(request, 
+				'team_project_tracking/project_details.html', 
+				{
+					'project' : project,
+					'project_updates':project_updates
+				}
+			)
+	except TeamProject.DoesNotExist:
+		logging.debug("Team project does not exist, in course details")
+		messages.error(request, 'an error occurred trying to view course details!')
+		return redirect('home')
+
+
+@login_required
+def add_project_update(request, proj_id, team_id):
+	try:
+		if(proj_id and team_id):
+			current_memb_list = []
+			team = Team.objects.get(pk=team_id)
+			current_members = team.team_with_member.all()		
+			for memb in current_members:
+				current_memb_list.append(memb.member)
+			if (request.user in current_memb_list):
+				project = TeamProject.objects.get(pk=proj_id)
+				if request.method=='POST':
+					form = ProjectUpdateForm(request.POST)
+					if form.is_valid():
+						update_title = form.cleaned_data.get('update_title')
+						date = form.cleaned_data.get('date')
+						update_notes = form.cleaned_data.get('update_notes')
+
+						new_proj_update = ProjectUpdate(
+							project=project,
+							update_title=update_title,
+							date=date,
+							update_notes=update_notes,
+							created_by=request.user
+						)
+						try:
+							new_proj_update.save()
+							messages.success(request, 'project update successfuly added!')
+						except Exception as e:
+							messages.error(request, 'project update was not added!')
+						return redirect('team_project_details', proj_id)
+				else:
+					form = ProjectUpdateForm()
+					return render(
+						request,
+						'team_project_tracking/add_project_update.html',
+						{
+							'form': form, 
+							'proj_id':proj_id,
+							'team_id': team_id
+						})
+			else:
+				messages.warning(request, "you don't have permission to perform that actions")
+				return redirect("user_profile")
+	except Exception as e:
+		logging.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
 		return redirect('user_profile')
 
 
-
-# @login_required
-# def delete_project(request, pk):
-# 	project = Project.objects.get(pk=pk)
-# 	if request.method == 'POST':
-# 		project.delete()
-# 		messages.info(request, 'project successfully deleted!')
-# 		return redirect('communities')
-# 	return render(request, 'medwater/confirm_delete_project.html', {'project':project} )
+@login_required
+def delete_project(request, proj_id, team_id):
+	project = TeamProject.objects.get(pk=proj_id)
+	if request.method == 'POST':
+		project.delete()
+		messages.info(request, 'project successfully deleted!')
+		return redirect('team_details', team_id)
+	return render(request, 
+		'team_project_tracking/confirm_delete_project.html', 
+		{
+			'project':project,
+			'proj_id':proj_id,
+			'team_id':team_id
+		} )

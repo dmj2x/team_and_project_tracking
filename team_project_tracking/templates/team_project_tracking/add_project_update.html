@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <div class="container">
+    <h5>Add a project update</h5>
+    <br/>
+    <form action="{% url 'add_project_update' proj_id team_id %}" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <br/>
+      <input class="btn btn-primary" type="submit" value="Submit">
+    </form>
+
+  </div>
+
+{% endblock %}

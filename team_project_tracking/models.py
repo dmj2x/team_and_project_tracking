@@ -10,7 +10,6 @@ from partial_date import PartialDateField
 from django.utils import timezone
 from decouple import config
 from datetime import datetime, timezone, timedelta, date
-from django.contrib.auth.models import User
 
 
 NAN = '-'
@@ -207,3 +206,23 @@ class TeamProject(models.Model):
         return reverse('team_project_details', args=[str(self.id)])
     def __str__(self):
         return 'Project %s for team %s' % (self.project_name, self.team)
+
+
+class ProjectUpdate(models.Model):
+    project = models.ForeignKey('TeamProject', on_delete=models.CASCADE,
+                                    null=False, related_name='project_update')
+    update_title = models.CharField(null=False, blank=False, max_length=20)
+    update_notes = models.TextField(blank=True)
+    date = models.DateField(auto_now=False, blank=False, null=False)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        db_table = 'project_update'
+        unique_together = (('project', 'update_title'),)
+    def __str__(self):
+        return self.update_title
+    @property
+    def save_model(self):
+        user = get_user_model()
+        obj.created_by = user.username
+        super().save_model()

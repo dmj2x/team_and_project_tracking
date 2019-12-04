@@ -1,0 +1,89 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+  <div class="container-fluid text-center">
+    <h1>{{ project.project_name }}</h1>
+    <h4 class="text-muted">
+        <a href="{{ project.team.get_absolute_url }}">
+            {{ project.team}}
+        </a>
+    </h4>
+    <h5 class="text-muted">Status:
+        {{ project.project_status }}
+    </h5>
+  </div>
+  </br>
+  <div class="container">
+
+    <div id="accordion">
+      <div class="card">
+        <div class="card-header" id="heading-one">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapse-show" data-toggle="collapse" data-target="#collapse-one" aria-expanded="false" aria-controls="collapseOne">
+              Project Updates
+            </button>
+          </h5>
+        </div>
+
+        <div id="collapse-one" class="collapse-show" aria-labelledby="heading-one" data-parent="#accordion">
+          <div class="card-body">
+            <div class="col">
+              {% if project_updates %}
+                {% for proj_updt in project_updates %}
+                  <p>
+                    <button class="btn btn-secondary" type="button" data-toggle="collapse" href="#{{proj_updt.id}}" aria-expanded="true" aria-controls="multiCollapseExample1">
+                      {{ proj_updt.update_title }}
+                    </button>
+                  </p>
+                  <div class="row">
+                    <div class="collapse multi-collapse" id="{{proj_updt.id}}">
+                      <div class="card card-body">
+                        <div style="margin-left:20px;margin-top:20px">
+                          <p><strong>Date:</strong> {{proj_updt.date}}</p>
+                          <hr>
+                          <p><strong>Notes:</strong> {{proj_updt.update_notes}}</p>
+                          <hr>
+                          <p>
+                            <a href="#">
+                              {{ 'edit update' }}
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <br />
+              {% endfor %}
+              
+            {% else %}
+              <p>No existing updates for this project.</p>
+            {% endif %}
+            </div>
+            <br/>
+            <p>
+              <a href="{% url 'add_project_update' project.id project.team.id %}">add project update</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <br/>
+  <div class="container edit-btn">
+    <p class="btn btn-info float-left">
+        <a class="text-light" href="#">
+            {{ 'Edit Project Info' }}      
+        </a>
+    </p>
+</div>
+  <div class="container">
+    <p class="btn btn-danger float-right">
+      <a class="text-light" href="{% url 'delete_project' project.id project.team.id %}">
+        {{ 'delete project' }}
+      </a>
+    </p>
+  </div>
+
+{% endblock %}

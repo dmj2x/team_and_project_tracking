@@ -5,15 +5,15 @@
         <div class="side-p">
             <h3>Are you sure?</h3>
             <p>You're about to delete
-              <span class="font-weight-bold">{{ community.community_name }}</span>.
-              This will also remove all projects and members of this community.</p>
+              <span class="font-weight-bold">{{ project.project_name }}</span>.
+              This will also remove all any project updates associated with this project.</p>
               <p>Please confirm.</p>
-            <form action="." method="post">
+            <form action="{% url 'delete_project' proj_id team_id %}" method="post">
                 {% csrf_token %}
                 <input class="btn btn-link"
                        type="button" value="Cancel"
                        onclick="window.history.go(-1);"/>
-                <input class="btn btn-danger" type="submit" value="Confirm"/>
+                <input class="btn btn-danger" type="submit" value="Yes, Delete!"/>
             </form>
         </div>
     </div>

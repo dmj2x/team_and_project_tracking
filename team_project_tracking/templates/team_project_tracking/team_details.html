@@ -122,21 +122,27 @@
 
             <!--When projects tab is clicked-->
             <div class="tab-pane" id="3">
-                {% if tema_projects %}
+                {% if team_projects %}
                     <table class="table table-hover" id="projects-tab">
                         <thead>
                             <tr>
                                 <th>{{ 'Name' }}</th>
-                                <th>{{ 'Short Description' }}</th>
+                                <th>{{ 'Description' }}</th>
                                 <th>{{ 'Deadline' }}</th>
                             </tr>
                         </thead>
                         <caption>{{ 'List of team projects' }}</caption>
-                        <tr>
-                            <td class="btn btn-light">{{ project.name }}</td>
-                            <td>{{ project.desscription }}</td>
-                            <td>{{ project.deadline }}</td>
-                        </tr>
+                            {% for proj in team_projects %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ proj.get_absolute_url }}">
+                                            {{ proj.project_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ proj.desscription }}</td>
+                                    <td>{{ proj.deadline }}</td>
+                                </tr>
+                            {% endfor %}
                     </table>
 
                 {% else %}
@@ -150,7 +156,7 @@
                     {% with team_id=team.id %}
                         <div class="text-center">
                             <br>
-                            <a class="btn btn-outline-dark" href="#">Add New Project</a>
+                            <a class="btn btn-outline-dark" href="{% url 'add_project' team.id %}">Add New Project</a>
                         </div>
                     {% endwith %}
                 {% endif %}
