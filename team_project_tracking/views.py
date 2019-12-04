@@ -824,58 +824,53 @@ def remove_team_member(request, team_id):
 		return redirect('user_profile')
 
 
-# @login_required
-# def all_admin_users(request):
-# 	""" function returns list of all users in the admin group """
-# 	try:
-# 		return Group.objects.get(name=config('ADMIN_GROUP')).user_set.all()
-# 	except Exception:
-# 		logger.error('an error occured trying to access admin users')
-# 		messages.error('an error occured and the site administrator will be notified!')
-# 		return redirect('home')
+
+@login_required
+def add_project(request, team_id):
+	try:
+		if(team_id):
+			current_memb_list = []
+			team = Team.objects.get(pk=team_id)
+			current_members = team.team_with_member.all()		
+			for memb in current_members:
+				current_memb_list.append(memb.member)
+			if (request.user in current_memb_list):
+				if request.method == 'POST':
+					project_form = ProjectForm(request.POST)
+					if project_form.is_valid():
+						project_name = project_form.cleaned_data.get('project_name')
+						description = project_form.cleaned_data.get('description')
+						deadline = project_form.cleaned_data.get('deadline')
+						
+						num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year).count()
+						if num_results < 1:
+							course_offer = CourseOffering(
+								course = course,
+								semester=semester,
+								year=year
+							)
+							course_offer.save()
+							messages.success(request, 'Course offering successfully added!')
+						else:
+							messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
+						return redirect('course_details', pk)
+					else:
+						return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
+			else:
+				messages.warning('you do not have the permission to add new members')
+				return redirect('team_details', team_id)
+	except Exception as e:
+		logger.warning("error adding members")
+		messages.error(request, "adding new member was not successful!")
+		return redirect('user_profile')
 
 
+
 # @login_required
-# def grant_permission(request):
-# 	"""
-# 		function accepts get and post requests
-# 		GET: returns a form with users and permisions
-# 		POST: selected users are assigned the selected permisions
-# 	"""
-# 	admin_users = all_admin_users(request)
-# 	if  request.user.is_staff or request.user in admin_users:
-# 		try:
-# 			if request.method == 'POST':
-# 				# get the list of user ids as string elements
-# 				user_select = request.POST.getlist('user-select[]')
-# 				# convert the id to integers
-# 				user_ids = list(map(int, user_select))
-# 				perm_select = request.POST.getlist('perm-select[]')
-# 				perm_ids = list(map(int, perm_select))
-# 				try:
-# 					for u_id in user_ids:
-# 						user = User.objects.get(pk=u_id)
-# 						for perm_id in perm_ids:
-# 							perm = Permission.objects.get(pk=perm_id)
-# 							if not user.has_perm(perm):
-# 								user.user_permissions.add(perm)
-# 					messages.success(request, "permissions successfully added!")
-# 				except Exception as e:
-# 					logger.warning("granting permissions failed")
-# 					messages.error(request, "granting permissions was not successful!")
-# 				return redirect('home')
-# 			else:
-# 				usr_choices = [(usr.pk, usr.first_name) for usr in User.objects.filter(is_active=True, is_staff=False)]
-# 				perm_choices = [(perm.pk, perm.name) for perm in Permission.objects.filter(
-# 					Q(name__contains='Can add community') |
-# 					Q(name__contains='Can add project') |
-# 					Q(name__contains='Can add funding') |
-# 					Q(name__contains='Can add member'))]
-# 				return render(request, 'medwater/add_permission.html',
-# 					{'usr_choices': usr_choices, 'perm_choices': perm_choices})
-# 		except Exception:
-# 			logger.error("an error occurred and permissions cannot be added")
-# 			messages.error(request,
-# 				'an error occurred and permissions cannot be added. The site Administrator has been notified!')
-# 	messages.warning(request, 'you don\'t have permission to access that page!')
-# 	return redirect('home')
+# def delete_project(request, pk):
+# 	project = Project.objects.get(pk=pk)
+# 	if request.method == 'POST':
+# 		project.delete()
+# 		messages.info(request, 'project successfully deleted!')
+# 		return redirect('communities')
+# 	return render(request, 'medwater/confirm_delete_project.html', {'project':project} )

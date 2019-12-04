@@ -396,3 +396,50 @@ class UpdateTeamInfoForm(forms.ModelForm):
         cleaned_data = super().clean()
         team_name = cleaned_data.get('team_name')
         course_offering = cleaned_data.get('course_offering')
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = TeamProject
+        fields = ['project_name', 'description', 'deadline']
+
+    project_name = forms.CharField(
+        label='Project Name',
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'autofocus': '',
+                'placeholder': 'enter project name',
+            }
+    ), )
+    description = forms.CharField(
+    label='Project Description',
+    required=False,
+    widget=forms.Textarea(
+    attrs={
+        'class': 'form-control col-6 col-md-4',
+        'autofocus': '',
+        'placeholder': 'enter project description',
+    }
+    ))
+
+    deadline = forms.DateField(
+        label='Deadline',
+        required=False,
+        widget=DatePickerInput(
+            options = {
+                "format": 'YYYY-MM-DD',
+                "showClose": True,
+                "showClear": True,
+                "showTodayButton": True,
+                'widgetPositioning': {
+                    'horizontal': 'right',
+                    'vertical': 'auto'
+                },
+            },
+            attrs={
+                'class': 'form-control col-6 col-md-4',
+                'placeholder': 'format YYYY-MM-DD'
+            }
+        ), )
