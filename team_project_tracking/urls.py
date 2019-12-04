@@ -51,5 +51,6 @@ urlpatterns = [
     path('team_details/<int:pk>', views.team_details, name='team_details'),
     re_path('^edit_team_info/(?P<pk>\d+)/$', views.edit_team_info, name='edit_team_info'),
     path('add_team_member/<int:team_id>', views.add_team_member, name="add_team_member"),
+    path('remove_team_member/<int:team_id>', views.remove_team_member, name="remove_team_member"),
 
 ]

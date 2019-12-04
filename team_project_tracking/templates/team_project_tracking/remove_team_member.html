@@ -2,11 +2,11 @@
 
 {% block content %}
   <div class="container">
-    <h5>Add New Team Member</h5>
+    <h5>Remove Team Member</h5>
     <br/>
-    <form action="{% url 'add_team_member' team_id %}" method="post">
+    <form action="{% url 'remove_team_member' team_id %}" method="post">
       {% csrf_token %}       
-      <p>NOTE: you can add up to a maximum of five members to a team</p>
+      <p>NOTE: you can have a minimum of one member in a team</p>
         <select class="form-control col-6 col-md-4" id="member" name="member" required>
             <option value=''>{{ '-----' }}</option>
             {% for stu in member_choices %}

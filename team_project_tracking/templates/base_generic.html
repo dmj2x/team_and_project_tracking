@@ -31,7 +31,7 @@
           <a class="navbar-brand" href="{% url 'home' %}">Home<span class="sr-only">(current)</span></a>
         </li>
         
-        {% if user.profile.user_role == 'Faculty' or user.is_superuser %}
+        {% if user.is_superuser %}
           <li class="nav-item dropdown">
             <a class="navbar-brand dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Role Management
@@ -42,6 +42,8 @@
               <a class="dropdown-item" href="{% url 'unassign_role' %}">Unassign Role</a>
             </div>
           </li>
+        {% endif %}
+        {% if user.profile.user_role == 'Faculty' or user.is_superuser %}
           <li class="nav-item dropdown">
             <a class="navbar-brand dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Courses

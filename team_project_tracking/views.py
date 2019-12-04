@@ -139,10 +139,10 @@ def register(request):
 						user = User.objects.get(pk=user.id)
 					)
 					profile.save()
-					messages.info(request, 'please login to proceed')
+					messages.info(request, 'registration was successful. please login to proceed')
 					return redirect('landing_page')
 				else:
-					messages.error(request, 'registration failed, please try again')
+					messages.error(request, 'registration failed, please make sure to fill the form appropriately')
 			user_form = UserForm()
 			# profile_form = ProfileForm()
 			return render(request, 'registration/register.html',
@@ -158,16 +158,16 @@ def register(request):
 
 @login_required
 def get_user_role(request):
-	user_role = ''
+	user_role = None
 	current_user = User.objects.get(pk=request.user.id)
 	check_fac_role = current_user.faculty.values().count()
+	check_fac_with_role = current_user.user_with_role.values().count()
 	check_stu_role = current_user.student.values().count()
-	if check_fac_role > 0 and check_stu_role < 1:
+	if (check_fac_role > 0 and check_stu_role < 1) or check_fac_with_role > 0:
 		user_role = 'Faculty'
 	elif check_fac_role < 1 and check_stu_role > 0:
 		user_role = 'Student'
 	return user_role
-
 
 
 @login_required
@@ -177,13 +177,12 @@ def user_profile(request):
 		GET: returns current user's profile information
 	"""
 	user_role = get_user_role(request)
-	if user_role  != '':
+	if user_role=='Faculty' or user_role=='Student':
 		try:
-			obj, created = Profile.objects.update_or_create(user=request.user, user_role=user_role.title())
-			if created==1:
-				logging.debug("user role updated")
-			else:
-				logging.debug("user role not updated")
+			obj = Profile.objects.get(user=request.user)
+			if not obj.user_role:
+				obj.user_role = user_role.title()
+				obj.save()
 		except Exception as e:
 			if request.user.profile.user_role is None:
 				update_profile = Profile.objects.filter(user=request.user).update(user_role=user_role)
@@ -235,57 +234,68 @@ def user_profile(request):
 @login_required
 # TODO: check permissions and roles
 def roles_list(request):
-	try:
-		roles = Role.objects.all()
-		return render(request, 'team_project_tracking/roles_list.html', {'roles':roles})
-	except Exception as e:
-		logger.debug(e)
-		messages.error(request, 'an error occurred trying to view roles list!')
-		return redirect('home')
+	if request.user.is_superuser:
+		try:
+			roles = Role.objects.all()
+			return render(request, 'team_project_tracking/roles_list.html', {'roles':roles})
+		except Exception as e:
+			logger.debug(e)
+			messages.error(request, 'an error occurred trying to view roles list!')
+			return redirect('home')
+	else:
+		messages.error(request, 'you don\'t have permission to perform that action')
+		return redirect('user_profile')
 
 
 @login_required
 def add_user_role(request):
-	if request.method == 'POST':
-		form = RoleForm(request.POST)
-		if form.is_valid():
-			role_title = form.cleaned_data.get('role_title')
-			description = form.cleaned_data.get('description')
-
-			new_role = Role(
-				role_title=role_title,
-				description=description)
-			new_role.save()
-			messages.success(request, 'role added successfully!')
-			# TODO: will be routing to an appropriate page
+	if request.user.is_superuser:
+		try:
+			if request.method == 'POST':
+				form = RoleForm(request.POST)
+				if form.is_valid():
+					role_title = form.cleaned_data.get('role_title')
+					description = form.cleaned_data.get('description')
+					new_role = Role(
+						role_title=role_title,
+						description=description)
+					new_role.save()
+					messages.success(request, 'role added successfully!')
+					return redirect('home')
+			else:
+				form = RoleForm()
+			return render(request, 'team_project_tracking/add_role_form.html', {'form': form})
+		except Exception as e:
+			logger.debug(e)
+			messages.error(request, 'an error occurred trying to add user roles list!')
 			return redirect('home')
-	else:
-		form = RoleForm()
-	return render(request, 'team_project_tracking/add_role_form.html', {'form': form})
+	messages.error(request, 'you don\'t have permission to perform that action')
+	return redirect('user_profile')
 
 
 @login_required
 def edit_user_role(request, pk):
-	try:
-		if (pk):
-			role = Role.objects.get(pk=pk)
-			form = RoleForm(request.POST, instance=role)
-			if request.method == 'POST' and form.is_valid():
-				role_update = form.save(commit=False)
-				role_update.role_title = form.cleaned_data['role_title']
-				role_update.description = form.cleaned_data['description']
-				role_update.save()
-				messages.success(request, 'role information updated!')
-				# TODO: will be routing to admin page or page with list of roles
-				return redirect('home')
-			else:
-				form = RoleForm(instance=role)
-				return render(request, 'team_project_tracking/edit_role_form.html', {'form': form})
-	except Exception as e:
-		logging.debug(e)
-		messages.error(request, 'an error occurred, please contact site administrator!')
-		# TODO: this will redirect to a custom 404 page
-		return redirect('home')
+	if request.user.is_superuser:
+		try:
+			if (pk):
+				role = Role.objects.get(pk=pk)
+				form = RoleForm(request.POST, instance=role)
+				if request.method == 'POST' and form.is_valid():
+					role_update = form.save(commit=False)
+					role_update.role_title = form.cleaned_data['role_title']
+					role_update.description = form.cleaned_data['description']
+					role_update.save()
+					messages.success(request, 'role information updated!')
+					return redirect('home')
+				else:
+					form = RoleForm(instance=role)
+					return render(request, 'team_project_tracking/edit_role_form.html', {'form': form})
+		except Exception as e:
+			logging.debug(e)
+			messages.error(request, 'an error occurred, please contact site administrator!')
+			return redirect('home')
+	messages.error(request, 'you don\'t have permission to perform that action')
+	return redirect('user_profile')
 
 
 @login_required
@@ -295,13 +305,10 @@ def assign_role(request):
 			if request.method == 'POST':
 				form = UserRoleForm(request.POST)
 				if form.is_valid():
-					course_offering = form.cleaned_data.get('course_offering') 
 					user = form.cleaned_data.get('user')
 					role = form.cleaned_data.get('role')
-					print('USer: %s' % user.first_name)
 					new_user_role = UserRole(
 						role=role,
-						course_offering=course_offering,
 						user=user
 						)
 					new_user_role.save()
@@ -309,53 +316,60 @@ def assign_role(request):
 					return redirect('home')
 				else:
 					messages.warning(request, 'role was not assigned')
-					# return redirect('home')
 					return render(request, 'team_project_tracking/assign_role_form.html', {'form': form})
 			else:
 				form = UserRoleForm()
 				return render(request, 'team_project_tracking/assign_role_form.html', {'form': form})
 		else:
 			messages.warning(request, 'you don\'t have permission to aassign roles!')
-			return redirect('home')
+			return redirect('user_profile')
 	except Exception as e:
 		logging.debug(e)
-
+		messages.error(request, 'an error occurred, please contact site administrator!')
+		return redirect('home')
 
 @login_required
 def unassign_role(request):
-	if request.method == 'POST':
-		form = UserRoleForm(request.POST)
-		course_offering = form.data['course_offering']
-		user = form.data['user']
-		role = form.data['role']
-		try:
-			remove_user_role = UserRole.objects.filter(
-				role=role,
-				course_offering=course_offering,
-				user=user).first()
-			if(remove_user_role):
-				remove_user_role.delete()
-				messages.success(request, 'user role removed successfully!')
-				return redirect('home')
+	try:
+		if request.user.is_superuser:
+			if request.method == 'POST':
+				form = UserRoleForm(request.POST)
+				course_offering = form.data['course_offering']
+				user = form.data['user']
+				role = form.data['role']
+				try:
+					remove_user_role = UserRole.objects.filter(
+						role=role,
+						course_offering=course_offering,
+						user=user).first()
+					if(remove_user_role):
+						remove_user_role.delete()
+						messages.success(request, 'user role removed successfully!')
+						return redirect('home')
+					else:
+						check_course_offering = CourseOffering.objects.get(pk=course_offering)
+						check_user = User.objects.get(pk=user)
+						check_role = Role.objects.get(pk=role)
+						messages.warning(request, "There is no user called %s with role %s in  %s course!" % (
+							check_user.first_name, check_role.role_title, check_course_offering))
+						return redirect('home')
+				except Exception as e:
+					logging.debug(e)
+					messages.error(request, "an error occurred trying to unassign a role")
+					return redirect('home')
 			else:
-				check_course_offering = CourseOffering.objects.get(pk=course_offering)
-				check_user = User.objects.get(pk=user)
-				check_role = Role.objects.get(pk=role)
-				messages.warning(request, "There is no user called %s with role %s in  %s course!" % (
-					check_user.first_name, check_role.role_title, check_course_offering))
-				return redirect('home')
-		except Exception as e:
-			logging.debug(e)
-			# TODO: re-route to appropriate page
-			messages.error(request, "an error occurred trying to unassign a role")
-			return redirect('home')
-	else:
-		form = UserRoleForm()
-	return render(request, 'team_project_tracking/unassign_role_form.html', {'form': form})
+				form = UserRoleForm()
+			return render(request, 'team_project_tracking/unassign_role_form.html', {'form': form})
+		else:
+			messages.warning(request, 'you don\'t have permission to aassign roles!')
+			return redirect('user_profile')
+	except Exception as e:
+		logging.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
+		return redirect('home')
 
 
 @login_required
-# TODO: check permissions and roles
 def course_list(request):
 	try:
 		courses = Course.objects.all()
@@ -367,7 +381,6 @@ def course_list(request):
 
 
 @login_required
-# should require system admin
 def add_course(request):
 	if request.user.is_superuser:
 		try:
@@ -378,9 +391,7 @@ def add_course(request):
 					course_number = course_form.cleaned_data.get('course_number')
 					course_description = course_form.cleaned_data.get('course_description')
 					faculty = course_form.cleaned_data.get('faculty')
-					
 					num_results = Course.objects.filter(course_name=course_name.title(), course_number=course_number, faculty=faculty).count()
-					# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
 					if num_results < 1:
 						course = Course(
 							course_name=course_name.title(),
@@ -405,10 +416,9 @@ def add_course(request):
 			else:
 				course_form = CourseForm()
 				return render(request, 'team_project_tracking/add_course_form.html', {'form': course_form})
-		# except Exception as e:
-		except PermissionDenied:
+		except Exception as e:
+			logging.debug(e)
 			messages.error(request, 'an error occurred, please contact site administrator!')
-			# TODO: this will redirect to a custom 404 page
 			return redirect('home')
 	else:
 		messages.warning(request, 'you don\'t have the required permission to add a new course')
@@ -417,52 +427,56 @@ def add_course(request):
 
 @login_required
 def add_course_offering(request, pk):
-	user_role = get_user_role(request)
-	if pk and user_role=='Faculty':
-		course = Course.objects.get(pk=pk)
-		if request.user == course.faculty or request.user.is_superuser:
-			try:
-				if request.method == 'POST':
-					course_offering_form = CourseOfferingForm(request.POST)
-					if course_offering_form.is_valid():
-						semester = course_offering_form.cleaned_data.get('semester')
-						year = course_offering_form.cleaned_data.get('year')
-						
-						num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year).count()
-						# TODO: or we can use course_name__contains in the filter when the above query fails to return the desire results
-						if num_results < 1:
-							course_offer = CourseOffering(
-								course = course,
-								semester=semester,
-								year=year
-							)
-							course_offer.save()
-							messages.success(request, 'Course offering successfully added!')
+	try:
+		user_role = get_user_role(request)
+		if pk and user_role=='Faculty':
+			course = Course.objects.get(pk=pk)
+			if request.user == course.faculty or request.user.is_superuser:
+				try:
+					if request.method == 'POST':
+						course_offering_form = CourseOfferingForm(request.POST)
+						if course_offering_form.is_valid():
+							semester = course_offering_form.cleaned_data.get('semester')
+							year = course_offering_form.cleaned_data.get('year')
+							
+							num_results = CourseOffering.objects.filter(course=course, semester=semester, year=year).count()
+							if num_results < 1:
+								course_offer = CourseOffering(
+									course = course,
+									semester=semester,
+									year=year
+								)
+								course_offer.save()
+								messages.success(request, 'Course offering successfully added!')
+							else:
+								messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
+							return redirect('course_details', pk)
 						else:
-							messages.info(request, 'a course offering for %s,  %s%s already exists!' % (course.course_name, semester, year))
-						return redirect('course_details', pk)
+							return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
 					else:
-						return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form})
-				else:
-					course_offering_form = CourseOfferingForm()
-					return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form, "course_id":pk})
-			except Exception as e:
-
-				messages.error(request, 'an error occurred, please contact site administrator!')
+						course_offering_form = CourseOfferingForm()
+						return render(request, 'team_project_tracking/add_course_offering_form.html', {'form': course_offering_form, "course_id":pk})
+				except Exception as e:
+					logging.debug(e)
+					messages.error(request, 'an error occurred, please contact site administrator!')
+					return redirect('home')
+			else:
+				messages.warning(request, 'you don\'t have the required permission to add a new course')
 				return redirect('home')
 		else:
-			messages.warning(request, 'you don\'t have the required permission to add a new course')
+			messages.warning(request, 'an error occurred, please contact site administrator!')
 			return redirect('home')
-	else:
-		messages.warning(request, 'an error occurred, please contact site administrator!')
+	except Exception as e:
+		logging.debug(e)
+		messages.error(request, 'an error occurred, please contact site administrator!')
 		return redirect('home')
 
 
 @login_required
 def course_details(request, pk):
-	user_role = get_user_role(request)
 	try:
-		if (pk):
+		user_role = get_user_role(request)
+		if pk:
 			course = Course.objects.get(pk=pk)
 			course_offering, current_offering, course_teams, current_students = [], [], [], []
 			try:
@@ -474,7 +488,6 @@ def course_details(request, pk):
 					
 			except Exception as e:
 				logger.debug(e)
-				# print("Course is missing more info")
 			return render(request, 
 				'team_project_tracking/course_detail.html', 
 				{
@@ -487,19 +500,19 @@ def course_details(request, pk):
 				}
 			)
 	except Course.DoesNotExist:
+		logging.debug("Course does not exist, in course details")
 		messages.error(request, 'an error occurred trying to view course details!')
-		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
 
 
 @login_required
 def edit_course_info(request, pk):
 	try:
-		if (pk):
+		user_role = get_user_role(request)
+		if pk and user_role=='Faculty':
 			course = Course.objects.get(pk=pk)
 			form = CourseForm(request.POST, instance=course)
 			if request.method == 'POST' and form.is_valid():
-				# print("here now: %s" % course.course_name)
 				course_update = form.save(commit=False)
 				course_update.course_name = form.cleaned_data['course_name']
 				course_update.course_number = form.cleaned_data['course_number']
@@ -515,14 +528,13 @@ def edit_course_info(request, pk):
 	except Exception as e:
 		logger.debug(e)
 		messages.error(request, 'an error occurred trying to edit course information!')
-		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
 
 
 
 @login_required
 def join_course(request):
-	if not request.user.faculty.values(): # or request.user.profile.user_role=="Student"
+	if not request.user.faculty.values():
 		try:
 			if request.method == 'POST':
 				join_course_form = JoinCourseForm(request.POST)
@@ -610,7 +622,6 @@ def teams_list(request):
 
 @login_required
 def create_new_team(request):
-	# user_role = get_user_role(request)
 	try:
 		if request.method == 'POST':
 			form = CreateTeamForm(request.POST)
@@ -643,7 +654,6 @@ def create_new_team(request):
 					new_member.save()
 					messages.success(request, 'Team successfully created!')
 				else:
-					# 	print('Here in teams with: %s' % team)
 					messages.info(request, 'a team with name %s already exists in %s' % (team_name, course_offering))
 				return redirect('teams_list')
 			else:
@@ -652,10 +662,8 @@ def create_new_team(request):
 			form = CreateTeamForm()
 			return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
 	except Exception as e:
-	# except PermissionDenied:
 		logger.debug(e)
 		messages.error(request, 'an error occurred, please contact site administrator!')
-		# TODO: this will redirect to a custom 404 page
 		return redirect('home')
 
 
@@ -722,43 +730,34 @@ def add_team_member(request, team_id):
 			current_members = team.team_with_member.all()
 			if team_leader and (team_leader.member == request.user):
 				if request.method == 'POST':
-					selected_member = request.POST.getlist('member-select[]')
+					selected_member = request.POST.get('member')
 					# convert the id to integers
-					member_ids = list(map(int, selected_member))
-					# print('member_ids: %s' % member_ids)
-					if (len(member_ids) + current_members.count()) > 5:
-						print('Total members: %s' % (len(member_ids) + current_members.count()))
-						messages.warning('A maximum of 5 members per team is allowed')
-						return render(request, 'team_project_tracking/add_team_member.html', 
-									{
-										'member_choices' : member_choices,
-										'team_id' : team_id
-									}
-								)
+					member_id = int(selected_member)
+					if (current_members.count() + 1) > 5:
+						messages.warning(request, 'A maximum of 5 members per team is allowed')
 					else:
 						try:
-							for memb_id in member_ids:
-								_stu = User.objects.get(pk=memb_id)
-								new_member = TeamMember(
-									team=team,
-									member=_stu
-								)
-								new_member.save()
-								# obj, created = TeamMember.objects.create(team=team, member=_stu)
-							messages.success(request, "members successfully added")
+							_stu = User.objects.get(pk=member_id)
+							new_member = TeamMember(
+								team=team,
+								member=_stu
+							)
+							new_member.save()
+							messages.success(request, "member successfully added")
 						except Exception as e:
-							print('Error adding member 1 : %s' % e)
-							logger.erro("error adding members")
-							messages.error(request, "adding members was not successful!")
-						return redirect('team_details', team_id)
+							logger.erro("error adding new member")
+							messages.error(request, "adding new member was not successful!")
+					return redirect('team_details', team_id)
 				else:
+					current_memb_list = []
+					member_choices = []
 					for stu in course_students:
-						if stu not in current_members:
-							print('stu not in: %s' % stu)
-							student_list.append(stu)
-						else:
-							print('stu in: %s' % stu)
-					member_choices = [(stu.pk, stu.student) for stu in student_list]
+						student_list.append(stu.student)
+					for memb in current_members:
+						current_memb_list.append(memb.member)
+					for new_memb in student_list:
+						if new_memb not in current_memb_list:
+							member_choices.append((new_memb.id, new_memb))
 					return render(request, 'team_project_tracking/add_team_member.html', 
 									{
 										'member_choices' : member_choices,
@@ -769,9 +768,59 @@ def add_team_member(request, team_id):
 				messages.warning('you do not have the permission to add new members')
 				return redirect('team_details', team_id)
 	except Exception as e:
-		print('Error adding members: %s' % e)
 		logger.warning("error adding members")
-		messages.error(request, "adding members was not successful!")
+		messages.error(request, "adding new member was not successful!")
+		return redirect('user_profile')
+
+
+
+@login_required
+def remove_team_member(request, team_id):
+	try:
+		if(team_id):
+			team = Team.objects.get(pk=team_id)
+			team_leader = team.team_with_member.get(member=request.user, team_leader=True)
+			course_students = CourseStudent.objects.filter(course_offering=team.course_offering, student_status='approved')
+			current_members = team.team_with_member.all()
+			if team_leader and (team_leader.member == request.user):
+				if request.method == 'POST':
+					selected_member = request.POST.get('member')
+					# convert the id to integers
+					member_id = int(selected_member)
+					if (current_members.count() - 1) < 0:
+						messages.warning(request, 'A minimum of one member per team is required')
+					else:
+						try:
+							rm_member = User.objects.get(pk=member_id)
+							old_member = TeamMember.objects.get(
+								team=team,
+								member=rm_member
+							)
+							old_member.delete()
+							messages.success(request, "member was successfully removed")
+						except Exception as e:
+							logger.erro("error removing member")
+							print(e)
+							messages.error(request, "removing member was not successful!")
+					return redirect('team_details', team_id)
+				else:
+					member_choices = []
+					for memb in current_members:
+						if not memb.team_leader:
+							member_choices.append((memb.member.id, memb.member))
+					return render(request, 'team_project_tracking/remove_team_member.html', 
+									{
+										'member_choices' : member_choices,
+										'team_id' : team_id
+									}
+								)
+			else:
+				messages.warning('you do not have the permission to add new members')
+				return redirect('team_details', team_id)
+	except Exception as e:
+		logger.warning("error removing member")
+		print(e)
+		messages.error(request, "removing member was not successful!")
 		return redirect('user_profile')
 
 

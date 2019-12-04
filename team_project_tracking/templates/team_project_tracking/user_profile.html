@@ -107,7 +107,7 @@
               {{ 'update your info' }}
             </a>
           </p>
-          {% if user_role == '' or user_role == 'Student' %}
+          {% if user_role == None or user_role == 'Student' %}
             <p class="col-4">
               <a href="{% url 'join_course' %}">
                 {{ 'join a class' }}

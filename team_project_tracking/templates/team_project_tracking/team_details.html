@@ -88,16 +88,16 @@
                             </tr>
                         </thead>
                             <caption>List of team members</caption>
-                            <tr>
-                                {% for tm in team_members %}
+                            {% for tm in team_members %}
+                                <tr>
                                     <td>{{ tm.member }}</td>
                                     {% if tm.team_leader %}
                                         <td>{{ 'Team Leader' }}</td>
                                     {% else %}
-                                        <td>{{ 'Team Leader' }}</td>
+                                        <td>{{ 'Member' }}</td>
                                     {% endif %}
-                                {% endfor %}
-                            </tr>
+                                </tr>
+                            {% endfor %}
                     </table>
                 {% else %}
                     <div class="text-center">
@@ -112,7 +112,7 @@
                             <div class="text-center">
                                 <br />
                                 <a class="btn btn-info btn-outline-dark" href="{% url 'add_team_member' team.id %}">Add New Member</a>
-                                <a class="btn btn-outline-danger" href="#">Remove Member</a>
+                                <a class="btn btn-outline-danger" href="{% url 'remove_team_member' team.id %}">Remove Member</a>
                             </div>
                         {% endwith %}
                     {% endif %}

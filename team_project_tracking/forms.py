@@ -126,9 +126,12 @@ class UserForm(forms.ModelForm):
             raise forms.ValidationError('you must use your lousiville.edu email to register')
         if email != confirm_email:
             raise forms.ValidationError('Email addresses must match!')
-        email_qs = User.objects.filter(email=email)
-        if email_qs.exists():
-            raise forms.ValidationError('Email address already registered!')
+        try:
+            email_qs = User.objects.filter(email=email)
+            if email_qs.exists():
+                raise forms.ValidationError('Email address already registered!')
+        except Exception as e:
+            print(e)
         if password != confirm_password:
             raise forms.ValidationError('please make sure the passwords are matching!')
 
