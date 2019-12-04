@@ -68,8 +68,8 @@
                     </tr>
                     <tr>
                         <td>{{ 'Number of Projects' }}</td>
-                        {% if team.project %}
-                            <td>{{ team.project }}</td>
+                        {% if team.team_with_project %}
+                            <td>{{ team.team_with_project.count }}</td>
                         {% else %}
                             <td>{{ 'information missing' }}</td>
                         {%endif%}

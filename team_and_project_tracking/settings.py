@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+# use this for local development
 
 # DATABASES = {
 #     'default': {
@@ -111,7 +111,7 @@ WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 #     },
 # }
 
-
+# use this in when deploying to heroku
 DATABASES = { 'default' : dj_database_url.config()}
 
 

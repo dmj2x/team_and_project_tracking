@@ -464,7 +464,7 @@ def add_course_offering(request, pk):
 				messages.warning(request, 'you don\'t have the required permission to add a new course')
 				return redirect('home')
 		else:
-			messages.warning(request, 'an error occurred, please contact site administrator!')
+			messages.warning(request, 'you don\'t have the required permission to add a new course')
 			return redirect('home')
 	except Exception as e:
 		logging.debug(e)
@@ -653,8 +653,10 @@ def create_new_team(request):
 					)
 					new_member.save()
 					messages.success(request, 'Team successfully created!')
-				else:
+				if if_team > 0:
 					messages.info(request, 'a team with name %s already exists in %s' % (team_name, course_offering))
+				if not is_stu_valid:
+					messages.warning(request, 'you have not been approved yet to join the class and create team')
 				return redirect('teams_list')
 			else:
 				return render(request, 'team_project_tracking/create_team_form.html', {'form': form})
