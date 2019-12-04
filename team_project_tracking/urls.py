@@ -19,9 +19,7 @@ urlpatterns = [
     #  user info
     path('user_profile/', views.user_profile, name='user_profile'),
     # path('update_profile/', views.update_profile, name='update_profile'),
-    # path('change_password/', views.change_password, name='change_password'),
-    # re_path(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-    #     views.activate, name='activate'),
+    path('change_password/', views.change_password, name='change_password'),
     path('password_reset/', views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('password_reset/confirm/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),

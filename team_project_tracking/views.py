@@ -20,6 +20,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from team_project_tracking.forms import *
 from team_project_tracking.models import *
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from decouple import config
 import logging, sys
@@ -199,34 +200,34 @@ def user_profile(request):
 		return redirect('home')
 
 
-# @login_required
-# def change_password(request):
-# 	"""
-# 		function accepts get and post requests
-# 		GET:  returns a password change form
-# 		POST:
-# 			- user password is updated
-# 			- user is redirected to login page to be reauthenticated
-# 	"""
-# 	if request.method == 'POST':
-# 		password_form = PasswordChangeForm(request.user, request.POST)
-# 		try:
-# 			if password_form.is_valid():
-# 				user = password_form.save()
-# 				update_session_auth_hash(request, user)
-# 				messages.success(request, 'Your password was successfully updated!')
-# 				return redirect(reverse('login') + '?next=/medwater/user_profile/')
-# 			else:
-# 				logger.warning("password change failed")
-# 				messages.error(request, 'Password change failed! Make sure the old password is correct!')
-# 		except ObjectDoesNotExist:
-# 			logger.error("error occured when a user tried to make a password change")
-# 			messages.error(request,
-# 				'an error occured truing to change your password. The site administrator will be notified!')
-# 		return redirect('user_profile')
-# 	else:
-# 		password_form = PasswordChangeForm(request.user)
-# 		return render(request, 'medwater/change_password.html', {'password_form': password_form})
+@login_required
+def change_password(request):
+	"""
+		function accepts get and post requests
+		GET:  returns a password change form
+		POST:
+			- user password is updated
+			- user is redirected to login page to be reauthenticated
+	"""
+	if request.method == 'POST':
+		password_form = PasswordChangeForm(request.user, request.POST)
+		try:
+			if password_form.is_valid():
+				user = password_form.save()
+				update_session_auth_hash(request, user)
+				messages.success(request, 'Your password was successfully updated!')
+				return redirect(reverse('user_profile') + '?next=/team_and_project_tracking/user_profile/')
+			else:
+				logger.warning("password change failed")
+				messages.error(request, 'Password change failed! Make sure the old password is correct!')
+		except ObjectDoesNotExist:
+			logger.error("error occured when a user tried to make a password change")
+			messages.error(request,
+				'an error occured truing to change your password. The site administrator will be notified!')
+		return redirect('user_profile')
+	else:
+		password_form = PasswordChangeForm(request.user)
+		return render(request, 'team_project_tracking/change_password.html', {'password_form': password_form})
 
 
 

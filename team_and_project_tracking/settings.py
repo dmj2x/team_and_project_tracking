@@ -95,24 +95,24 @@ WSGI_APPLICATION = 'team_and_project_tracking.wsgi.application'
 # Database
 # use this for local development
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': config('DB_NAME'),
-#         'USER': config('DB_USER'),
-#         'PASSWORD': config('DB_PASSWORD'),
-#         'HOST': config('DB_HOST'),
-#         'PORT': config('DB_PORT'),
-#         'TEST': {
-#             'NAME': config('TESTDB_NAME'),
-#             'USER': config('DB_USER'),
-#             'PASSWORD': config('DB_PASSWORD'),
-#         }
-#     },
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+        'TEST': {
+            'NAME': config('TESTDB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+        }
+    },
+}
 
 # use this in when deploying to heroku
-DATABASES = { 'default' : dj_database_url.config()}
+# DATABASES = { 'default' : dj_database_url.config()}
 
 
 
