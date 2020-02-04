@@ -1,7 +1,7 @@
 # Team and Project Tracking
 
 Note: 
-This project has only been run in ubuntu 18.04 however, the following instructions should work in any python 3.6 virtual env.
+This project was only implemented as class project for a Software Engineering Course at the University of Louisville. The project has only been run in ubuntu 18.04 however, the following instructions should work in any python 3.6 virtual env.
 
 To run this project in your local environment;
 
