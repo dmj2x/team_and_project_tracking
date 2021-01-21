@@ -1,7 +1,8 @@
 # Team and Project Tracking
 
 **Note**:
-This project was only implemented as class project for a Software Engineering Course at the University of Louisville. The project has only been run in ubuntu 18.04 however, the following instructions should work in any python 3.6 virtual env.
+This is a class project for CSE 550 - Software Engineering, Fall 2019, at the University of Louisville. 
+The project is tested on ubuntu 18.04 however, the following instructions should work with any python 3.6 virtual env.
 
 To run this project in your local environment;
 
