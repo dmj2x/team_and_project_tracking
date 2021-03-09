@@ -93,7 +93,7 @@ class CourseOffering(models.Model):
                                     null=False, related_name='course', blank=False)
     semester = models.CharField(max_length=6, choices=SEMESTER_CHOICES, null=False, blank=False, default='--')
     year = PartialDateField(null=False, blank=False)
-    course_status = models.CharField(max_length=10, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
+    course_status = models.CharField(max_length=15, choices=COURSE_STATUS_CHOICES, null=False, blank=False, default='active')
     
     class Meta:
         db_table = 'course_offering'
