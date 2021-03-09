@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  course_db:
+    restart: always
+    container_name: cecs550DB
+    image: postgres:11
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      # POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - cecs550_data:/var/lib/postgresql/data/
+
+  course_app:
+    restart: always
+    container_name: cecs550App
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    env_file: .env
+    depends_on:
+      - course_db
+
+volumes:
+  cecs550_data:
